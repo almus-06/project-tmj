@@ -1,3 +1,4 @@
+/storage/logs/*.log
 *.log
 .DS_Store
 .env
@@ -22,4 +23,25 @@
 _ide_helper.php
 Homestead.json
 Homestead.yaml
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/app/public/*
+
+# Package Manager
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE/Editor
+.idea/
+.vscode/
+.nova/
+.zed/
+.fleet/
+
+# OS
 Thumbs.db
+Desktop.ini
