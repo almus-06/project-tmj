@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Baru - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-slate-800">
+    <nav class="bg-blue-800 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 rounded-lg w-10 h-10 flex flex-col justify-center items-center font-bold text-lg shadow-sm">
+                        ⚡
+                    </div>
+                    <span class="font-bold text-xl tracking-wide">Admin Workspace</span>
+                </div>
+                <div>
+                    <span class="text-blue-200 text-sm font-medium">Hi, Administrator</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Area Filter -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pencarian</label>
+                        <input type="text" placeholder="Cari sesuatu..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm px-4 py-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Tanggal</label>
+                        <input type="date" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm px-4 py-2 border">
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm transition">Filter</button>
+                        <button class="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-200 border border-gray-300 transition">Reset</button>
+                    </div>
+                    <div class="md:text-right">
+                        <button class="inline-flex items-center bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 shadow-sm transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 2 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-gray-800">Daftar Data</h2>
+                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">Total: 10 Data</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500 whitespace-nowrap">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4">Waktu</th>
+                            <th class="px-6 py-4">Informasi</th>
+                            <th class="px-6 py-4">Status Utama</th>
+                            <th class="px-6 py-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">02 Apr 2026</td>
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-800">Nama Item 1</div>
+                                <div class="text-xs text-gray-500">ID: 001</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide">Aktif</span>
+                            </td>
+                            <td class="px-6 py-4"><button class="text-blue-600 font-bold hover:underline">Detail</button></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">01 Apr 2026</td>
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-800">Nama Item 2</div>
+                                <div class="text-xs text-gray-500">ID: 002</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide">Nonaktif</span>
+                            </td>
+                            <td class="px-6 py-4"><button class="text-blue-600 font-bold hover:underline">Detail</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom TMJ Vanilla CSS */
+body {
+    background-color: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+}
+
+.tmj-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    min-height: 100vh;
+}
+
+.tmj-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    color: white;
+}
+
+.tmj-btn-primary { background-color: #2563eb; }
+.tmj-btn-success { background-color: #16a34a; }
+
+.tmj-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+}
+
+.tmj-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+/* Indicators */
+.indicator-green { background-color: #16a34a !important; color: white !important; }
+.indicator-red { background-color: #dc2626 !important; color: white !important; }
+.indicator-yellow { background-color: #eab308 !important; color: black !important; }
+
+/* Pulse animation for real-time vibe */
+.animate-pulse-slow {
+    animation: pulselight 3s infinite;
+}
+
+@keyframes pulselight {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
