@@ -9,7 +9,17 @@ class Attendance extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceFactory> */
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'attendance_code',
+        'employee_id',
+        'presence_status',
+        'blood_pressure',
+        'spo2',
+        'temperature',
+        'tak',
+        'project',
+        'fit_status',
+    ];
 
     public function employee()
     {

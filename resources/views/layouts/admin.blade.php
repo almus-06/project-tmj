@@ -55,14 +55,18 @@
                        class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         Dashboard
                     </a>
-                    <a href="{{ route('admin.attendances') }}"
-                       class="nav-link {{ request()->routeIs('admin.attendances') ? 'active' : '' }}">
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
+                    <a href="{{ route('dashboard.attendance') }}"
+                       class="nav-link {{ request()->routeIs('dashboard.attendance') ? 'active' : '' }}">
                         Attendance
                     </a>
-                    <a href="{{ route('admin.units') }}"
-                       class="nav-link {{ request()->routeIs('admin.units') ? 'active' : '' }}">
+                    @endif
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
+                    <a href="{{ route('dashboard.fleet') }}"
+                       class="nav-link {{ request()->routeIs('dashboard.fleet') ? 'active' : '' }}">
                         Fleet
                     </a>
+                    @endif
                 </div>
 
                 {{-- User & Logout --}}

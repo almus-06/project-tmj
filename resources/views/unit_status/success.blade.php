@@ -116,9 +116,9 @@
                 </div>
 
                 {{-- Title --}}
-                <h1 class="text-2xl font-black text-slate-800 mb-2 tracking-tight">Laporan Tersimpan!</h1>
-                <p class="text-slate-500 font-medium mb-6" style="font-size:0.9rem;">Data unit telah tercatat dan
-                    tersinkronisasi ke fleet dashboard secara real-time.</p>
+                <h1 class="text-2xl font-black text-slate-800 mb-2 tracking-tight">Berhasil Tersimpan!</h1>
+                <p class="text-slate-500 font-medium mb-6" style="font-size:0.9rem;">Data unit Anda telah tercatat dan
+                    tersinkronisasi secara real-time ke dashboard operasional.</p>
 
                 {{-- Details Card --}}
                 <div class="rounded-2xl p-4 mb-6 text-left" style="background: #F8FAFC; border: 1.5px solid #E8EDF3;">
@@ -127,10 +127,12 @@
                         <span
                             class="text-xs font-black font-mono text-slate-700">{{ session('submission_id', '#—') }}</span>
                     </div>
+                    @if(session('unit_number'))
                     <div class="flex justify-between items-center py-2.5 border-b" style="border-color: #E8EDF3;">
                         <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Unit</span>
                         <span class="text-xs font-bold text-slate-700">{{ session('unit_number', '—') }}</span>
                     </div>
+                    @endif
                     <div class="flex justify-between items-center py-2.5">
                         <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Timestamp</span>
                         <span
@@ -142,13 +144,13 @@
                 <div class="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6"
                     style="background: #EFF6FF; border: 1.5px solid #BFDBFE;">
                     <span class="w-2 h-2 rounded-full" style="background: #3B82F6;"></span>
-                    <span class="text-xs font-bold" style="color: #1D4ED8;">UNIT REPORT — Logged</span>
+                    <span class="text-xs font-bold" style="color: #1D4ED8;">UNIT {{ session('status_label', 'REPORT') }} — Logged</span>
                 </div>
 
                 {{-- Actions --}}
                 <a href="{{ route('unit.status.create') }}"
                     class="block w-full text-center text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98] mb-3"
-                    style="background: linear-gradient(135deg, #2563EB, #1D4ED8); box-shadow: 0 6px 18px rgba(37,99,235,0.35);">
+                    style="background: linear-gradient(135deg, #1D4ED8, #2563EB); box-shadow: 0 6px 18px rgba(37,99,235,0.35);">
                     ＋ Submit Laporan Baru
                 </a>
 

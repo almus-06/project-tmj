@@ -13,8 +13,13 @@ class AdminController extends Controller
     {
         $fitCount   = Attendance::whereDate('created_at', today())->where('fit_status', 'Fit')->count();
         $unfitCount = Attendance::whereDate('created_at', today())->where('fit_status', 'Unfit')->count();
-        $readyUnit  = UnitStatus::whereDate('created_at', today())->where('status', 'Ready')->count();
-        $downUnit   = UnitStatus::whereDate('created_at', today())->where('status', 'Down')->count();
+        
+        $latestStatuses = UnitStatus::whereIn('id', function($query) {
+            $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
+        })->get();
+        
+        $readyUnit  = $latestStatuses->where('status', 'Ready')->count();
+        $downUnit   = $latestStatuses->where('status', 'Down')->count();
 
         return view('dashboard', compact('fitCount', 'unfitCount', 'readyUnit', 'downUnit'));
     }
@@ -37,7 +42,8 @@ class AdminController extends Controller
 
     public function units(Request $request)
     {
-        $query = UnitStatus::with('unit')->latest();
+        $latestIdsQuery = UnitStatus::selectRaw('MAX(id)')->groupBy('unit_id');
+        $query = UnitStatus::with('unit')->whereIn('id', $latestIdsQuery)->latest();
 
         if ($request->filled('date'))    $query->whereDate('created_at', $request->date);
         if ($request->filled('project')) $query->where('project', $request->project);
@@ -49,16 +55,20 @@ class AdminController extends Controller
 
         $unitStatuses = $query->paginate(20);
 
-        // Summary counts
-        $totalUnits   = UnitStatus::distinct('unit_id')->count('unit_id');
-        $readyCount   = UnitStatus::whereDate('created_at', today())->where('status', 'Ready')->count();
-        $standbyCount = UnitStatus::whereDate('created_at', today())->where('status', 'Standby')->count();
-        $downCount    = UnitStatus::whereDate('created_at', today())->where('status', 'Down')->count();
+        // Summary counts from exactly the latest submitted status of each physical unit
+        $latestPerUnit = UnitStatus::whereIn('id', function($query) {
+            $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
+        })->get();
 
-        // Chart data
-        $chartMainDev = UnitStatus::whereDate('created_at', today())->where('project', 'Main Dev')->count();
-        $chartSorlim  = UnitStatus::whereDate('created_at', today())->where('project', 'Sorlim')->count();
-        $chartBigFleet = UnitStatus::whereDate('created_at', today())->where('project', 'Big Fleet')->count();
+        $totalUnits   = $latestPerUnit->count();
+        $readyCount   = $latestPerUnit->where('status', 'Ready')->count();
+        $standbyCount = $latestPerUnit->where('status', 'Standby')->count();
+        $downCount    = $latestPerUnit->where('status', 'Down')->count();
+
+        // Chart data distribution based on latest project placement
+        $chartMainDev = $latestPerUnit->where('project', 'Main Dev')->count();
+        $chartSorlim  = $latestPerUnit->where('project', 'Sorlim')->count();
+        $chartBigFleet = $latestPerUnit->where('project', 'Big Fleet')->count();
 
         return view('admin.units', compact(
             'unitStatuses', 'totalUnits',
@@ -105,7 +115,7 @@ class AdminController extends Controller
                 } else {
                     fputcsv($file, [
                         $row->created_at->format('Y-m-d H:i:s'),
-                        ($row->unit->unit_number ?? '-') . ' (' . ($row->unit->type ?? '-') . ')',
+                        ($row->unit->no_kendaraan ?? '-') . ' (' . ($row->unit->jenis_alat ?? '-') . ')',
                         $row->operator_name,
                         $row->project,
                         $row->status,

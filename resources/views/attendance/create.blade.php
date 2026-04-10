@@ -68,7 +68,7 @@
             employees: {{ $employees->map(function($emp) { return ['id' => $emp->id, 'name' => $emp->name, 'pos' => $emp->position]; })->toJson() }},
             get filteredEmployees() {
                 if (this.search === '') return this.employees;
-                return this.employees.filter(emp => emp.name.toLowerCase().includes(this.search.toLowerCase()));
+                return this.employees.filter(emp => emp.name.toLowerCase().startsWith(this.search.toLowerCase()));
             },
             selectEmployee(emp) {
                 this.selectedId = emp.id;
@@ -80,7 +80,7 @@
             <label for="employee_search_input" class="field-label">
                 Nama Karyawan <span class="text-red-400">*</span>
             </label>
-            <div class="relative">
+            <div class="relative" @click.away="open = false; search = ''">
                 {{-- Hidden Real Input --}}
                 <input type="hidden" name="employee_id" :value="selectedId" required>
 
@@ -98,14 +98,15 @@
                         :placeholder="selectedName"
                         x-model="search"
                         @click="open = true"
-                        @click.away="open = false; search = ''"
                         @keydown.escape="open = false; search = ''"
                         autocomplete="off"
                     >
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <button type="button" @click="open = !open" tabindex="-1" class="text-slate-400 hover:text-slate-600 focus:outline-none p-2 rounded-full transition-colors">
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -119,9 +120,9 @@
                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
                     class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
-                    style="max-height: 280px; display: none;"
+                    style="max-height: 480px; display: none;"
                 >
-                    <div class="overflow-y-auto max-h-[280px] custom-scrollbar">
+                    <div class="custom-scrollbar" style="max-height: 380px; overflow-y: auto; overflow-x: hidden;">
                         <template x-for="emp in filteredEmployees" :key="emp.id">
                             <div
                                 @click="selectEmployee(emp)"
@@ -131,6 +132,7 @@
                                 <span class="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-tight" x-text="emp.pos"></span>
                             </div>
                         </template>
+
                         <div x-show="filteredEmployees.length === 0" class="px-4 py-8 text-center">
                             <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -236,8 +238,8 @@
                 <span id="tak_knob" class="w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300" style="transform: translateX(24px);"></span>
             </button>
             <div>
-                <p class="font-bold text-green-800" style="font-size:0.875rem;">TAK Check — Clearance</p>
-                <p class="text-green-600" style="font-size:0.75rem;">Tidak Ada Keluhan (Medis Normal)</p>
+                <p class="font-bold text-green-800" style="font-size:0.875rem;">TAK</p>
+                <p class="text-green-600" style="font-size:0.75rem;">Tidak Ada Kelainan</p>
             </div>
         </div>
 

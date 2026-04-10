@@ -13,8 +13,15 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->string('unit_number')->unique();
-            $table->string('type');
+            $table->string('jenis_alat')->nullable();
+            $table->string('merek')->nullable();
+            $table->string('no_kendaraan')->unique();
+            $table->string('no_plat')->nullable();
+            $table->string('serial_number')->nullable();
+            $table->string('no_machine')->nullable();
+            $table->string('ct')->nullable();
+            $table->string('tahun')->nullable();
+            $table->string('status')->nullable();
             $table->string('qr_code_string')->unique()->nullable();
             $table->timestamps();
         });

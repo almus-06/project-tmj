@@ -51,6 +51,24 @@
     <form action="{{ route('unit.status.store') }}" method="POST" id="unitForm">
         @csrf
 
+        @if($errors->any())
+            <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200">
+                <div class="flex items-center gap-3 mb-2 text-red-600">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="font-bold text-sm">Gagal Menyimpan Data</span>
+                </div>
+                <ul class="list-disc list-inside text-xs text-red-500 font-medium space-y-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         {{-- ══════════════════════════════════════════ --}}
         {{-- SECTION 1: Vehicle Identity --}}
         {{-- ══════════════════════════════════════════ --}}
@@ -66,34 +84,116 @@
                 Vehicle Identity
             </p>
 
-            <div>
-                <label for="unit_id" class="field-label">Nomor Unit <span class="text-red-400">*</span></label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z" />
-                        </svg>
+            <div x-data="{
+                                        search: '',
+                                        open: false,
+                                        isLocked: {{ $isLocked ? 'true' : 'false' }},
+                                        selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : ' Nomor Unit' }}',
+                                        selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
+                                        units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
+        return ['id' => $u->id, 'name' => $u->no_kendaraan . ' — ' . $u->jenis_alat, 'raw_no' => $u->no_kendaraan]; })->toJson() }},
+                                        get filteredUnits() {
+                                            if (this.search === '') return this.units;
+                                            return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
+                                        },
+                                        selectUnit(u) {
+                                            if (this.isLocked) return;
+                                            this.selectedId = u.id;
+                                            this.selectedName = u.name;
+                                            this.search = '';
+                                            this.open = false;
+                                        }
+                                    }">
+                <label for="unit_search_input" class="field-label">Nomor Unit <span class="text-red-400">*</span></label>
+                <div class="relative" @click.away="open = false; search = ''">
+                    {{-- Hidden Real Input --}}
+                    @if($isLocked)
+                        <input type="hidden" name="unit_id" :value="selectedId">
+                    @else
+                        <input type="hidden" name="unit_id" :value="selectedId" required>
+                    @endif
+
+                    {{-- Trigger / Search Input --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg style="width:18px;height:18px;" :class="isLocked ? 'text-blue-500' : 'text-slate-400'"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="unit_search_input"
+                            class="form-input-field pl-11 pr-10 cursor-pointer transition-colors"
+                            :class="isLocked ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' : ''"
+                            :placeholder="selectedName" x-model="search" :disabled="isLocked"
+                            @click="if(!isLocked){ open = true; }" @keydown.escape="open = false; search = ''"
+                            autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                            <template x-if="isLocked">
+                                <div class="pr-2 pointer-events-none">
+                                    <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </template>
+                            <template x-if="!isLocked">
+                                <button type="button" @click="open = !open" tabindex="-1"
+                                    class="text-slate-400 hover:text-slate-600 focus:outline-none p-2 rounded-full transition-colors">
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
                     </div>
-                    <select id="unit_id" name="unit_id" required
-                        class="form-input-field pl-11 pr-10 @error('unit_id') border-red-400 @enderror">
-                        <option value="">— Pilih Unit —</option>
-                        @foreach($units as $unit)
-                            <option value="{{ $unit->id }}" {{ (old('unit_id') ?? $selectedUnitId) == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->unit_number }} — {{ $unit->type }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
+
+                    {{-- Dropdown Results --}}
+                    <div x-show="open && !isLocked" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                        class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                        style="max-height: 480px; display: none;">
+                        <div class="custom-scrollbar" style="max-height: 380px; overflow-y: auto; overflow-x: hidden;">
+                            <template x-for="u in filteredUnits" :key="u.id">
+                                <div @click="selectUnit(u)"
+                                    class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700" x-text="u.raw_no"></span>
+                                    <span class="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-tight"
+                                        x-text="u.name.split(' — ')[1]"></span>
+                                </div>
+                            </template>
+
+                            <div x-show="filteredUnits.length === 0" class="px-4 py-8 text-center">
+                                <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z" />
+                                </svg>
+                                <p class="text-xs font-bold text-slate-400">Unit tidak ditemukan</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                @if($isLocked)
+                    <p class="text-[10px] text-blue-500 font-bold mt-1.5 flex items-center gap-1 uppercase tracking-wider">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Auto-detected via QR Scan
+                    </p>
+                @endif
                 @error('unit_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
                 @enderror
             </div>
@@ -123,7 +223,7 @@
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <input type="text" id="operator_name" name="operator_name" required placeholder="Full legal name"
+                    <input type="text" id="operator_name" name="operator_name" required placeholder="Nama Operator"
                         value="{{ old('operator_name') }}"
                         class="form-input-field pl-11 @error('operator_name') border-red-400 @enderror">
                 </div>
@@ -271,7 +371,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <input type="text" id="location" name="location" required placeholder="Pit / Bay / Workshop..."
+                    <input type="text" id="location" name="location" required placeholder="Lokasi keandaraan saat ini"
                         value="{{ old('location') }}"
                         class="form-input-field pl-11 @error('location') border-red-400 @enderror">
                 </div>
@@ -285,7 +385,7 @@
                     <label for="hm" class="field-label">Hour Meter <span class="text-slate-400 normal-case font-normal"
                             style="font-size:0.65rem;">(H/M)</span></label>
                     <div class="relative">
-                        <input type="number" step="0.1" id="hm" name="hm" required placeholder="12500"
+                        <input type="number" step="0.1" id="hm" name="hm" required placeholder="H/M saat ini"
                             value="{{ old('hm') }}"
                             class="form-input-field font-black @error('hm') border-red-400 @enderror"
                             style="padding-right: 40px;">
@@ -300,7 +400,7 @@
                     <label for="km" class="field-label">Kilometer <span class="text-slate-400 normal-case font-normal"
                             style="font-size:0.65rem;">(KM)</span></label>
                     <div class="relative">
-                        <input type="number" step="0.1" id="km" name="km" required placeholder="85000"
+                        <input type="number" step="0.1" id="km" name="km" required placeholder="KM saat ini"
                             value="{{ old('km') }}"
                             class="form-input-field font-black @error('km') border-red-400 @enderror"
                             style="padding-right: 40px;">
@@ -392,9 +492,9 @@
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = `<svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg> Menyimpan...`;
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg> Menyimpan...`;
         });
     </script>
 @endsection

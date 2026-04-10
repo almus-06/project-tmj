@@ -17,7 +17,11 @@
     </div>
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    @php
+        $statCols = in_array(Auth::user()->role, ['admin', 'supervisor']) ? 'lg:grid-cols-4' : 'lg:grid-cols-2';
+    @endphp
+    <div class="grid grid-cols-2 {{ $statCols }} gap-4 mb-6">
+        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
         {{-- Fit --}}
         <div class="stat-card flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #DCFCE7;">
@@ -45,7 +49,9 @@
                 <p class="text-xs text-slate-400">karyawan perlu perhatian</p>
             </div>
         </div>
+        @endif
 
+        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
         {{-- Unit Ready --}}
         <div class="stat-card" style="background: linear-gradient(135deg, #1D4ED8, #2563EB); border: none;">
             <div class="flex items-center justify-between mb-2">
@@ -72,11 +78,16 @@
                 <p class="text-xs text-slate-400">kendaraan dalam perbaikan</p>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- Quick Navigation --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="{{ route('admin.attendances') }}"
+    @php
+        $navCols = in_array(Auth::user()->role, ['admin', 'supervisor']) ? 'md:grid-cols-2' : 'md:grid-cols-1';
+    @endphp
+    <div class="grid grid-cols-1 {{ $navCols }} gap-4">
+        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
+        <a href="{{ route('dashboard.attendance') }}"
            class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 hover:shadow-md hover:border-blue-300 transition-all group">
             <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-105" style="background: #EFF6FF;">
                 <svg class="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -91,7 +102,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
         </a>
-        <a href="{{ route('admin.units') }}"
+        @endif
+
+        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
+        <a href="{{ route('dashboard.fleet') }}"
            class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 hover:shadow-md hover:border-blue-300 transition-all group">
             <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-105" style="background: #EFF6FF;">
                 <svg class="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -107,6 +121,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
         </a>
+        @endif
     </div>
 
     <script>

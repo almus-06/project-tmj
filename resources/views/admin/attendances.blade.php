@@ -10,7 +10,7 @@
             <h1 class="text-xl font-extrabold text-slate-800">Absensi Karyawan</h1>
             <p class="text-sm text-slate-500 mt-0.5">Data kehadiran & status Fit To Work karyawan</p>
         </div>
-        <a href="{{ route('admin.attendances', ['export' => 'csv'] + request()->all()) }}"
+        <a href="{{ route('dashboard.attendance', ['export' => 'csv'] + request()->all()) }}"
            class="inline-flex items-center gap-2 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all"
            style="background: linear-gradient(135deg, #16A34A, #15803D); box-shadow: 0 2px 8px rgba(22,163,74,0.3);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +22,7 @@
 
     {{-- Filter Bar --}}
     <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
-        <form method="GET" action="{{ route('admin.attendances') }}" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" action="{{ route('dashboard.attendance') }}" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
@@ -49,9 +49,9 @@
                 <div class="relative">
                     <select name="project" class="w-full border border-slate-200 rounded-xl text-sm px-3 py-2.5 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition pr-9">
                         <option value="">Semua Project</option>
-                        <option value="Main Dev" {{ request('project') == 'Main Dev' ? 'selected' : '' }}>Main Dev</option>
+                        <option value="Main Dev"   {{ request('project') == 'Main Dev'   ? 'selected' : '' }}>Main Dev</option>
                         <option value="Sorlim" {{ request('project') == 'Sorlim' ? 'selected' : '' }}>Sorlim</option>
-                        <option value="Big Fleet" {{ request('project') == 'Big Fleet' ? 'selected' : '' }}>Big Fleet</option>
+                        <option value="Big Fleet"  {{ request('project') == 'Big Fleet'  ? 'selected' : '' }}>Big Fleet</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -60,7 +60,7 @@
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all" style="background: #2563EB;">Filter</button>
-                <a href="{{ route('admin.attendances') }}" class="text-slate-600 text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">Reset</a>
+                <a href="{{ route('dashboard.attendance') }}" class="text-slate-600 text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">Reset</a>
             </div>
         </form>
     </div>

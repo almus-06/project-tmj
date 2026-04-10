@@ -8,7 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class UnitStatus extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'unit_id',
+        'operator_name',
+        'status',
+        'location',
+        'damage_type',
+        'hm',
+        'km',
+        'project',
+    ];
 
     public function unit()
     {

@@ -29,10 +29,25 @@ class DatabaseSeeder extends Seeder
             'role' => 'supervisor'
         ]);
 
+        User::factory()->create([
+            'name' => 'HRD TMJ',
+            'email' => 'hrd@tmj.com',
+            'password' => bcrypt('password'),
+            'role' => 'hrd'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Kepala Workshop',
+            'email' => 'workshop@tmj.com',
+            'password' => bcrypt('password'),
+            'role' => 'workshop'
+        ]);
+
         \App\Models\Employee::create(['name' => 'John Doe', 'position' => 'Operator']);
         \App\Models\Employee::create(['name' => 'Jane Smith', 'position' => 'Mechanic']);
         
-        \App\Models\Unit::create(['unit_number' => 'DT-001', 'type' => 'Dump Truck', 'qr_code_string' => 'tmj-dt001']);
-        \App\Models\Unit::create(['unit_number' => 'EX-022', 'type' => 'Excavator', 'qr_code_string' => 'tmj-ex022']);
+        $this->call([
+            UnitSeeder::class,
+        ]);
     }
 }

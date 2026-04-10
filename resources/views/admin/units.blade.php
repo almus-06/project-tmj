@@ -10,7 +10,7 @@
             <h1 class="text-xl font-extrabold text-slate-800">Monitoring Unit / Fleet</h1>
             <p class="text-sm text-slate-500 mt-0.5">Status dan kondisi kendaraan operasional</p>
         </div>
-        <a href="{{ route('admin.units', ['export' => 'csv'] + request()->all()) }}"
+        <a href="{{ route('dashboard.fleet', ['export' => 'csv'] + request()->all()) }}"
            class="inline-flex items-center gap-2 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all"
            style="background: linear-gradient(135deg, #16A34A, #15803D); box-shadow: 0 2px 8px rgba(22,163,74,0.3);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@
 
     {{-- Filter Bar --}}
     <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
-        <form method="GET" action="{{ route('admin.units') }}" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" action="{{ route('dashboard.fleet') }}" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
@@ -78,7 +78,7 @@
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all" style="background: #2563EB;">Filter</button>
-                <a href="{{ route('admin.units') }}" class="text-slate-600 text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">Reset</a>
+                <a href="{{ route('dashboard.fleet') }}" class="text-slate-600 text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">Reset</a>
             </div>
         </form>
     </div>
@@ -106,12 +106,19 @@
                             <th class="px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-slate-400">Project</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100" x-data="{ expanded: null }">
                         @forelse($unitStatuses as $row)
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-5 py-3.5">
-                                    <p class="font-bold text-slate-800">{{ $row->unit->unit_number ?? '—' }}</p>
-                                    <p class="text-xs text-slate-400">{{ $row->unit->type ?? '—' }}</p>
+                            <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" @click="expanded = expanded === {{ $row->id }} ? null : {{ $row->id }}">
+                                <td class="px-5 py-3.5 flex items-center gap-3">
+                                    <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors">
+                                        <svg class="w-4 h-4 transform transition-transform duration-200" :class="{'rotate-90': expanded === {{ $row->id }}}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">{{ $row->unit->no_kendaraan ?? '—' }}</p>
+                                        <p class="text-xs text-slate-400">{{ $row->unit->jenis_alat ?? '—' }}</p>
+                                    </div>
                                 </td>
                                 <td class="px-5 py-3.5">
                                     @if($row->status === 'Ready')
@@ -132,6 +139,58 @@
                                     <span class="font-semibold text-slate-700">{{ number_format($row->km, 1) }}</span> KM
                                 </td>
                                 <td class="px-5 py-3.5 text-sm text-slate-600 font-medium">{{ $row->project }}</td>
+                            </tr>
+                            
+                            {{-- Expandable History Row --}}
+                            <tr x-show="expanded === {{ $row->id }}" x-transition style="display: none;">
+                                <td colspan="6" class="px-5 py-4 bg-slate-50/80 border-b border-slate-200">
+                                    @php
+                                        // Fetch latest history omitting the current row
+                                        $historyLogs = \App\Models\UnitStatus::where('unit_id', $row->unit_id)
+                                                        ->where('id', '!=', $row->id)
+                                                        ->latest()
+                                                        ->take(5)
+                                                        ->get();
+                                    @endphp
+                                    
+                                    <div class="px-8 flex flex-col gap-3">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            5 Riwayat Logs Terakhir
+                                        </h4>
+                                        
+                                        @if($historyLogs->isEmpty())
+                                            <p class="text-sm text-slate-400 italic">Belum ada riwayat sebelumnya untuk unit ini.</p>
+                                        @else
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                @foreach($historyLogs as $log)
+                                                    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-col gap-2 relative overflow-hidden">
+                                                        <div class="absolute top-0 left-0 w-1 h-full 
+                                                            {{ $log->status === 'Ready' ? 'bg-green-500' : ($log->status === 'Standby' ? 'bg-amber-500' : 'bg-red-500') }}">
+                                                        </div>
+                                                        <div class="flex justify-between items-start pl-2">
+                                                            <div>
+                                                                <p class="text-xs font-bold text-slate-800">{{ $log->created_at->format('d M Y, H:i') }}</p>
+                                                                <p class="text-[11px] font-semibold text-slate-400 uppercase">{{ $log->status }} • {{ $log->project }}</p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p class="text-xs font-bold text-slate-600">{{ number_format($log->hm, 1) }} HM</p>
+                                                                <p class="text-[11px] text-slate-400 font-medium">{{ $log->operator_name }}</p>
+                                                            </div>
+                                                        </div>
+                                                        @if($log->damage_type)
+                                                            <div class="pl-2 mt-1 py-1 px-2 bg-red-50 rounded-md border border-red-100">
+                                                                <p class="text-[11px] text-red-600 font-medium">Kendala: {{ $log->damage_type }}</p>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
