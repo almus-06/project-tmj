@@ -6,13 +6,13 @@
         <title>{{ config('app.name', 'TMJ') }} | @yield('title')</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             * { -webkit-tap-highlight-color: transparent; }
             body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                background: #EEF2F7;
+                font-family: 'Inter', sans-serif;
+                background: #F1F5F9;
                 min-height: 100vh;
             }
 
@@ -20,28 +20,28 @@
             .form-input-field {
                 width: 100%;
                 background: #FFFFFF;
-                border: 2px solid #E8EDF3;
-                color: #1E293B;
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-size: 0.9375rem;
-                font-weight: 600;
-                border-radius: 14px;
-                padding: 15px 14px;
-                min-height: 56px;
+                border: 1px solid #E2E8F0;
+                color: #0F172A;
+                font-family: 'Inter', sans-serif;
+                font-size: 0.9rem;
+                font-weight: 700;
+                border-radius: 10px;
+                padding: 12px 14px;
+                min-height: 52px;
                 line-height: 1.4;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                transition: all 0.2s ease;
                 outline: none;
                 display: block;
                 box-sizing: border-box;
-                box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
             input.form-input-field {
-                height: 56px;
+                height: 52px;
                 padding-top: 0;
                 padding-bottom: 0;
                 padding-left: 14px;
                 padding-right: 14px;
-                line-height: 56px;
+                line-height: 52px;
             }
             /* Icon-padded inputs: Tailwind pl-9 and pl-11 overrides */
             input.form-input-field[class*="pl-9"],
@@ -76,12 +76,12 @@
 
             /* ─── Section Labels ────────────────────────────────────── */
             .section-label {
-                font-size: 0.7rem;
-                font-weight: 800;
-                letter-spacing: 0.12em;
+                font-size: 0.65rem;
+                font-weight: 900;
+                letter-spacing: 0.15em;
                 text-transform: uppercase;
-                color: #94A3B8;
-                margin-bottom: 14px;
+                color: #64748B;
+                margin-bottom: 12px;
                 display: flex;
                 align-items: center;
                 gap: 8px;
@@ -89,14 +89,14 @@
             .section-label::before {
                 content: '';
                 display: inline-block;
-                width: 4px;
-                height: 16px;
-                border-radius: 4px;
-                background: linear-gradient(180deg, #3B82F6, #2563EB);
+                width: 3px;
+                height: 14px;
+                border-radius: 2px;
+                background: #0F172A;
                 flex-shrink: 0;
             }
             .section-label.green::before {
-                background: linear-gradient(180deg, #22C55E, #16A34A);
+                background: #22C55E;
             }
 
             /* ─── Form Field Label ──────────────────────────────────── */
@@ -113,11 +113,11 @@
             /* ─── Section Cards ─────────────────────────────────────── */
             .section-card {
                 background: #FFFFFF;
-                border-radius: 20px;
-                padding: 20px;
-                margin-bottom: 12px;
-                box-shadow: 0 1px 4px rgba(15,23,42,0.05), 0 4px 16px rgba(15,23,42,0.04);
-                border: 1px solid rgba(226,232,240,0.8);
+                border-radius: 12px;
+                padding: 18px;
+                margin-bottom: 16px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                border: 1px solid #E2E8F0;
             }
 
             /* ─── Metric Cards (Health) ─────────────────────────────── */

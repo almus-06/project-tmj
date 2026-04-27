@@ -148,7 +148,7 @@
                 </div>
 
                 {{-- Actions --}}
-                <a href="{{ route('unit.status.create') }}"
+                <a href="{{ route('fleet.create') }}"
                     class="block w-full text-center text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98] mb-3"
                     style="background: linear-gradient(135deg, #1D4ED8, #2563EB); box-shadow: 0 6px 18px rgba(37,99,235,0.35);">
                     ＋ Submit Laporan Baru

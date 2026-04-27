@@ -8,29 +8,67 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Inter', sans-serif; background: #F1F5F9; }
-        .nav-link { position: relative; padding: 4px 2px; font-size: 0.875rem; font-weight: 500; color: #64748B; transition: color 0.2s; }
-        .nav-link:hover { color: #1E293B; }
-        .nav-link.active { color: #2563EB; font-weight: 600; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+        
+        /* Industrial Status Chips */
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+            line-height: 1;
+        }
+        .badge-ready   { background: rgba(34, 197, 94, 0.1); color: #15803D; border-left-color: #22C55E; }
+        .badge-standby { background: rgba(234, 179, 8, 0.1); color: #A16207; border-left-color: #EAB308; }
+        .badge-down    { background: rgba(239, 68, 68, 0.1); color: #B91C1C; border-left-color: #EF4444; }
+        
+        .badge-hadir   { background: rgba(34, 197, 94, 0.1); color: #15803D; border-left-color: #22C55E; }
+        .badge-absent  { background: rgba(239, 68, 68, 0.1); color: #B91C1C; border-left-color: #EF4444; }
+        .badge-izin    { background: rgba(245, 158, 11, 0.1); color: #92400E; border-left-color: #F59E0B; }
+        
+        .badge-fit     { background: rgba(34, 197, 94, 0.1); color: #15803D; border-left-color: #22C55E; }
+        .badge-unfit   { background: rgba(245, 158, 11, 0.1); color: #92400E; border-left-color: #F59E0B; }
+
+        /* Tonal Layering & Components */
+        .nav-link { position: relative; padding: 6px 4px; font-size: 0.85rem; font-weight: 500; color: #64748B; transition: all 0.2s; }
+        .nav-link:hover { color: #0F172A; }
+        .nav-link.active { color: #2563EB; font-weight: 700; }
         .nav-link.active::after {
             content: '';
             position: absolute;
-            bottom: -4px;
+            bottom: -14px;
             left: 0; right: 0;
             height: 2px;
             background: #2563EB;
             border-radius: 2px;
         }
-        .stat-card { background: #fff; border-radius: 14px; border: 1px solid #E2E8F0; padding: 20px 24px; }
-        .badge-ready   { background: #DCFCE7; color: #15803D; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-standby { background: #FEF9C3; color: #A16207; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-down    { background: #FEE2E2; color: #B91C1C; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-hadir   { background: #DCFCE7; color: #15803D; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-absent  { background: #FEE2E2; color: #B91C1C; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-izin    { background: #FEF3C7; color: #92400E; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; }
-        .badge-fit     { background: #DCFCE7; color: #15803D; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
-        .badge-unfit   { background: #FEE2E2; color: #B91C1C; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
-        .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+
+        .card-industrial {
+            background: #FFFFFF;
+            border-radius: 10px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-industrial:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .font-black { font-weight: 900; }
+        .tracking-tighter { letter-spacing: -0.05em; }
+        .text-xxs { font-size: 0.65rem; }
+        
+        .avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
+        
+        /* Table Headers */
+        .table-header { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
+        .table-header th { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; padding: 12px 16px; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -51,20 +89,20 @@
 
                 {{-- Nav Links --}}
                 <div class="flex items-center gap-6">
-                    <a href="{{ route('dashboard') }}"
-                       class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        Dashboard
+                    <a href="{{ route('operations.dashboard') }}"
+                       class="nav-link {{ request()->routeIs('operations.dashboard') ? 'active' : '' }}">
+                        Beranda
                     </a>
                     @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
-                    <a href="{{ route('dashboard.attendance') }}"
-                       class="nav-link {{ request()->routeIs('dashboard.attendance') ? 'active' : '' }}">
-                        Attendance
+                    <a href="{{ route('workforce.attendance') }}"
+                       class="nav-link {{ request()->routeIs('workforce.attendance') ? 'active' : '' }}">
+                        Absensi
                     </a>
                     @endif
                     @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
-                    <a href="{{ route('dashboard.fleet') }}"
-                       class="nav-link {{ request()->routeIs('dashboard.fleet') ? 'active' : '' }}">
-                        Fleet
+                    <a href="{{ route('fleet.management') }}"
+                       class="nav-link {{ request()->routeIs('fleet.management') ? 'active' : '' }}">
+                        Armada
                     </a>
                     @endif
                 </div>
@@ -80,7 +118,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
                         <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-red-600 transition border border-slate-200 rounded-lg px-3 py-1.5">
-                            Logout
+                            Keluar
                         </button>
                     </form>
                 </div>
@@ -93,5 +131,6 @@
         @yield('content')
     </main>
 
+    @stack('scripts')
 </body>
 </html>

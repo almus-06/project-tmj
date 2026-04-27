@@ -3,31 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\Project;
 
 class AttendanceController extends Controller
 {
     public function create()
     {
-        $employees = Employee::orderBy('name')->get();
-        return view('attendance.create', compact('employees'));
+        // Cache data karyawan selama 24 jam untuk menghindari beban memori saat lonjakan traffic
+        $employees = Cache::remember('employees_list', 86400, function () {
+            return Employee::orderBy('name')->get();
+        });
+
+        $projects = Cache::remember('projects_list', 86400, function () {
+            return Project::orderBy('name')->get();
+        });
+        
+        return view('forms.attendance', compact('employees', 'projects'));
     }
 
     public function store(Request $request)
     {
-        // 1. Generate base prefix: FitToWork-TMJ-ddmmyy
-        $todayPrefix = 'FitToWork-TMJ-' . now()->format('dmy');
-
-        // 2. Calculate sequential ID for today
-        // Count existing records for today with this prefix
-        $countToday = Attendance::where('attendance_code', 'like', $todayPrefix . '%')->count();
-        $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
-        $finalCode = $todayPrefix . '-' . $sequence;
-
-        // 3. Merge the generated code into the request for validation
-        $request->merge(['attendance_code' => $finalCode]);
+        // 1. Set temporary attendance code to pass validation
+        $request->merge(['attendance_code' => 'TMP-' . Str::uuid()]);
 
         $validated = $request->validate([
             'attendance_code' => 'required|string|unique:attendances,attendance_code',
@@ -43,14 +45,22 @@ class AttendanceController extends Controller
             'spo2'            => 'required|integer|min:0|max:100',
             'temperature'     => 'required|numeric',
             'tak'             => 'required|boolean',
-            'project'         => 'required|string',
+            'project_id'      => 'required|exists:projects,id',
             'fit_status'      => 'required|string|in:Fit,Unfit',
         ], [
             'employee_id.unique'           => 'Karyawan ini sudah melakukan absensi hari ini.',
             'attendance_code.unique'       => 'Terjadi benturan kode absensi (Duplicate). Silakan coba lagi.',
         ]);
 
+        // 2. Insert atomically
         $record = Attendance::create($validated);
+
+        // 3. Update the unique code using the true Database ID (Race-condition free)
+        $todayPrefix = 'FitToWork-TMJ-' . now()->format('dmy');
+        $sequence = str_pad($record->id, 4, '0', STR_PAD_LEFT);
+        $finalCode = $todayPrefix . '-' . $sequence;
+        
+        $record->update(['attendance_code' => $finalCode]);
 
         return redirect()->route('attendance.success')
             ->with('submission_id', $record->attendance_code)

@@ -24,6 +24,6 @@ class RoleMiddleware
             return $next($request);
         }
 
-        return redirect()->route('dashboard');
+        return redirect()->route('operations.dashboard');
     }
 }

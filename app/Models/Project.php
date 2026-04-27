@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Employee extends Model
+class Project extends Model
 {
-    use HasFactory;
-    protected $guarded = [];
-    
+    protected $fillable = ['name', 'location'];
+
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
@@ -17,6 +15,6 @@ class Employee extends Model
 
     public function unitStatuses()
     {
-        return $this->hasMany(UnitStatus::class, 'operator_id');
+        return $this->hasMany(UnitStatus::class);
     }
 }

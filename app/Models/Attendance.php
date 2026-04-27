@@ -12,17 +12,22 @@ class Attendance extends Model
     protected $fillable = [
         'attendance_code',
         'employee_id',
+        'project_id',
         'presence_status',
         'blood_pressure',
         'spo2',
         'temperature',
         'tak',
-        'project',
         'fit_status',
     ];
 
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 }

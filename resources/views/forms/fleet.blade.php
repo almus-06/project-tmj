@@ -3,9 +3,9 @@
 @section('title', 'Unit Monitoring')
 
 @section('header')
-    {{-- ═══ GRADIENT HEADER CARD ═══════════════════════════════════════════ --}}
+    {{-- ═══ INDUSTRIAL HEADER CARD ═══════════════════════════════════════════ --}}
     <div class="w-full max-w-md relative overflow-hidden"
-        style="background: linear-gradient(140deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%); border-radius: 0 0 28px 28px;">
+        style="background: #0F172A; border-radius: 0 0 20px 20px; border-bottom: 4px solid #2563EB;">
 
         {{-- Decorative circles --}}
         <div class="absolute -bottom-6 -left-6 w-32 h-32 rounded-full opacity-10" style="background: #FFFFFF;"></div>
@@ -27,9 +27,9 @@
             </div>
 
             {{-- Title block --}}
-            <h1 class="text-3xl font-black text-white tracking-tight leading-tight mb-1">UNIT MONITORING</h1>
-            <p class="text-sm font-medium" style="color: rgba(255,255,255,0.7);">PT. TRI MACHMUD JAYA &mdash; Laporan
-                Kendaraan</p>
+            <h1 class="text-3xl font-black text-white tracking-tighter leading-tight mb-1 uppercase">Unit Monitoring</h1>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em]" style="color: rgba(255,255,255,0.5);">PT. TRI
+                MACHMUD JAYA &mdash; Fleet Module</p>
 
             {{-- Date badge --}}
             <div class="mt-4">
@@ -48,7 +48,7 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('unit.status.store') }}" method="POST" id="unitForm">
+    <form action="{{ route('fleet.store') }}" method="POST" id="unitForm">
         @csrf
 
         @if($errors->any())
@@ -85,25 +85,25 @@
             </p>
 
             <div x-data="{
-                                        search: '',
-                                        open: false,
-                                        isLocked: {{ $isLocked ? 'true' : 'false' }},
-                                        selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : ' Nomor Unit' }}',
-                                        selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
-                                        units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
+                                            search: '',
+                                            open: false,
+                                            isLocked: {{ $isLocked ? 'true' : 'false' }},
+                                            selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : ' Nomor Unit' }}',
+                                            selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
+                                            units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
         return ['id' => $u->id, 'name' => $u->no_kendaraan . ' — ' . $u->jenis_alat, 'raw_no' => $u->no_kendaraan]; })->toJson() }},
-                                        get filteredUnits() {
-                                            if (this.search === '') return this.units;
-                                            return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
-                                        },
-                                        selectUnit(u) {
-                                            if (this.isLocked) return;
-                                            this.selectedId = u.id;
-                                            this.selectedName = u.name;
-                                            this.search = '';
-                                            this.open = false;
-                                        }
-                                    }">
+                                            get filteredUnits() {
+                                                if (this.search === '') return this.units;
+                                                return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
+                                            },
+                                            selectUnit(u) {
+                                                if (this.isLocked) return;
+                                                this.selectedId = u.id;
+                                                this.selectedName = u.name;
+                                                this.search = '';
+                                                this.open = false;
+                                            }
+                                        }">
                 <label for="unit_search_input" class="field-label">Nomor Unit <span class="text-red-400">*</span></label>
                 <div class="relative" @click.away="open = false; search = ''">
                     {{-- Hidden Real Input --}}
@@ -212,9 +212,9 @@
                 Personnel &amp; Task
             </p>
 
-            {{-- Operator Name --}}
+            {{-- Operator Name (Employee) --}}
             <div class="mb-4">
-                <label for="operator_name" class="field-label">Nama Operator <span class="text-red-400">*</span></label>
+                <label for="operator_id" class="field-label">Nama Operator <span class="text-red-400">*</span></label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
@@ -223,17 +223,29 @@
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <input type="text" id="operator_name" name="operator_name" required placeholder="Nama Operator"
-                        value="{{ old('operator_name') }}"
-                        class="form-input-field pl-11 @error('operator_name') border-red-400 @enderror">
+                    <select id="operator_id" name="operator_id" required
+                        class="form-input-field pl-11 pr-10 @error('operator_id') border-red-400 @enderror">
+                        <option value="" disabled selected>— Pilih Operator —</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}" {{ old('operator_id') == $emp->id ? 'selected' : '' }}>
+                                {{ $emp->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
-                @error('operator_name') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
+                @error('operator_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
                 @enderror
             </div>
 
             {{-- Project --}}
             <div>
-                <label for="project" class="field-label">Project <span class="text-red-400">*</span></label>
+                <label for="project_id" class="field-label">Project <span class="text-red-400">*</span></label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
@@ -243,12 +255,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <select id="project" name="project" required
-                        class="form-input-field pl-11 pr-10 @error('project') border-red-400 @enderror">
-                        <option value="Main Dev" {{ old('project', 'Main Dev') == 'Main Dev' ? 'selected' : '' }}>Main Dev
-                        </option>
-                        <option value="Sorlim" {{ old('project') == 'Sorlim' ? 'selected' : '' }}>Sorlim</option>
-                        <option value="Big Fleet" {{ old('project') == 'Big Fleet' ? 'selected' : '' }}>Big Fleet</option>
+                    <select id="project_id" name="project_id" required
+                        class="form-input-field pl-11 pr-10 @error('project_id') border-red-400 @enderror">
+                        <option value="" disabled selected>— Pilih Project —</option>
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>
+                                {{ $proj->name }}
+                            </option>
+                        @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -257,7 +271,7 @@
                         </svg>
                     </div>
                 </div>
-                @error('project') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
+                @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
                 @enderror
             </div>
         </div>
@@ -326,17 +340,16 @@
 
             {{-- Damage Description (conditionally shown) --}}
             <div id="damage_block" class="hidden">
-                <div class="p-4 rounded-2xl" style="background: #FFF1F2; border: 1.5px solid #FECACA;">
+                <div class="p-4 rounded-xl" style="background: #FFF1F2; border: 1px solid #FECACA;">
                     <label for="damage_type" class="field-label" style="color: #B91C1C;">
                         <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
                                 clip-rule="evenodd" />
                         </svg>
-                        Deskripsi Kerusakan <span class="text-red-400">*</span>
+                        REPAIR LOG / DAMAGE DESCRIPTION <span class="text-red-400">*</span>
                     </label>
-                    <textarea id="damage_type" name="damage_type" rows="3"
-                        placeholder="Deskripsikan kerusakan secara detail..."
+                    <textarea id="damage_type" name="damage_type" rows="3" placeholder="Detail the issue..."
                         class="form-input-field @error('damage_type') border-red-400 @enderror"
                         style="background: #FFF1F2; border-color: #FECACA;">{{ old('damage_type') }}</textarea>
                     @error('damage_type') <span
@@ -420,14 +433,12 @@
     {{-- STICKY SUBMIT BUTTON --}}
     {{-- ══════════════════════════════════════════ --}}
     <div class="sticky-submit-bar">
-        <button type="submit" form="unitForm" id="submitBtn" class="submit-btn blue">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z" />
+        <button type="submit" form="unitForm" id="submitBtn" class="submit-btn"
+            style="background: #2563EB; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Submit Report
+            SUBMIT UNIT REPORT
         </button>
     </div>
 
@@ -492,9 +503,9 @@
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = `<svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg> Menyimpan...`;
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg> Menyimpan...`;
         });
     </script>
 @endsection

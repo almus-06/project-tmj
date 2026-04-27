@@ -7,16 +7,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])
-    ->middleware(['auth', 'verified'])->name('dashboard');
-
+// Admin Dashboards (Original URLs preserved to fix broken navigation)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard/attendance', [\App\Http\Controllers\AdminController::class, 'attendances'])
+    Route::get('/operations-dashboard', [\App\Http\Controllers\OperationsController::class, 'dashboard'])
+        ->name('operations.dashboard');
+        
+    Route::get('/operations-dashboard/workforce-attendance', [\App\Http\Controllers\OperationsController::class, 'attendances'])
         ->middleware('role:admin,supervisor,hrd')
-        ->name('dashboard.attendance');
-    Route::get('/dashboard/fleet', [\App\Http\Controllers\AdminController::class, 'units'])
+        ->name('workforce.attendance');
+        
+    Route::get('/operations-dashboard/fleet-management', [\App\Http\Controllers\OperationsController::class, 'units'])
         ->middleware('role:admin,supervisor,workshop')
-        ->name('dashboard.fleet');
+        ->name('fleet.management');
 });
 
 Route::middleware('auth')->group(function () {
@@ -26,14 +28,17 @@ Route::middleware('auth')->group(function () {
 });
 
 use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\UnitStatusController;
 
 Route::get('/attendance', [AttendanceController::class, 'create'])->name('attendance.create');
-Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('attendance.store');
-Route::get('/attendance/success', function () { return view('attendance.success'); })->name('attendance.success');
+Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('throttle:attendance')->name('attendance.store');
+Route::get('/attendance/success', function () {
+    return view('forms.attendance-success');
+})->name('attendance.success');
 
-Route::get('/unit/status/success', function () { return view('unit_status.success'); })->name('unit.status.success');
-Route::get('/unit/status/{qr_code?}', [UnitStatusController::class, 'create'])->name('unit.status.create');
-Route::post('/unit/status', [UnitStatusController::class, 'store'])->middleware('throttle:10,1')->name('unit.status.store');
+Route::get('/fleet/success', function () {
+    return view('forms.fleet-success');
+})->name('fleet.success');
+Route::get('/fleet/{qr_code?}', [\App\Http\Controllers\FleetController::class, 'create'])->name('fleet.create');
+Route::post('/fleet', [\App\Http\Controllers\FleetController::class, 'store'])->middleware('throttle:10,1')->name('fleet.store');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

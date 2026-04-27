@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 use App\Models\Attendance;
 use App\Models\UnitStatus;
 
-class AdminController extends Controller
+class OperationsController extends Controller
 {
     public function dashboard()
     {
@@ -18,18 +19,18 @@ class AdminController extends Controller
             $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
         })->get();
         
-        $readyUnit  = $latestStatuses->where('status', 'Ready')->count();
-        $downUnit   = $latestStatuses->where('status', 'Down')->count();
+        $readyCount  = $latestStatuses->where('status', 'Ready')->count();
+        $downCount   = $latestStatuses->where('status', 'Down')->count();
 
-        return view('dashboard', compact('fitCount', 'unfitCount', 'readyUnit', 'downUnit'));
+        return view('admin.admin-dashboard', compact('fitCount', 'unfitCount', 'readyCount', 'downCount'));
     }
 
     public function attendances(Request $request)
     {
-        $query = Attendance::with('employee')->latest();
+        $query = Attendance::with(['employee', 'project'])->latest();
 
         if ($request->filled('date'))    $query->whereDate('created_at', $request->date);
-        if ($request->filled('project')) $query->where('project', $request->project);
+        if ($request->filled('project')) $query->whereHas('project', fn($q) => $q->where('name', $request->project));
         if ($request->filled('status'))  $query->where('presence_status', $request->status);
 
         if ($request->get('export') == 'csv') {
@@ -37,16 +38,24 @@ class AdminController extends Controller
         }
 
         $attendances = $query->paginate(20);
-        return view('admin.attendances', compact('attendances'));
+
+        // Stats version Karyawan (Daily Summary)
+        $todayQuery = Attendance::whereDate('created_at', now()->toDateString());
+        $hadirCount  = $todayQuery->clone()->where('presence_status', 'Hadir')->count();
+        $unfitCount  = $todayQuery->clone()->where('fit_status', 'Unfit')->count();
+        $leaveCount  = $todayQuery->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
+        $alphaCount  = $todayQuery->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
+
+        return view('admin.admin-attendance', compact('attendances', 'hadirCount', 'unfitCount', 'leaveCount', 'alphaCount'));
     }
 
     public function units(Request $request)
     {
         $latestIdsQuery = UnitStatus::selectRaw('MAX(id)')->groupBy('unit_id');
-        $query = UnitStatus::with('unit')->whereIn('id', $latestIdsQuery)->latest();
+        $query = UnitStatus::with(['unit', 'operator', 'project'])->whereIn('id', $latestIdsQuery)->latest();
 
         if ($request->filled('date'))    $query->whereDate('created_at', $request->date);
-        if ($request->filled('project')) $query->where('project', $request->project);
+        if ($request->filled('project')) $query->whereHas('project', fn($q) => $q->where('name', $request->project));
         if ($request->filled('status'))  $query->where('status', $request->status);
 
         if ($request->get('export') == 'csv') {
@@ -56,7 +65,7 @@ class AdminController extends Controller
         $unitStatuses = $query->paginate(20);
 
         // Summary counts from exactly the latest submitted status of each physical unit
-        $latestPerUnit = UnitStatus::whereIn('id', function($query) {
+        $latestPerUnit = UnitStatus::with('project')->whereIn('id', function($query) {
             $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
         })->get();
 
@@ -66,11 +75,11 @@ class AdminController extends Controller
         $downCount    = $latestPerUnit->where('status', 'Down')->count();
 
         // Chart data distribution based on latest project placement
-        $chartMainDev = $latestPerUnit->where('project', 'Main Dev')->count();
-        $chartSorlim  = $latestPerUnit->where('project', 'Sorlim')->count();
-        $chartBigFleet = $latestPerUnit->where('project', 'Big Fleet')->count();
+        $chartMainDev = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Main Dev')->count();
+        $chartSorlim  = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Sorlim')->count();
+        $chartBigFleet = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Big Fleet')->count();
 
-        return view('admin.units', compact(
+        return view('admin.admin-fleet', compact(
             'unitStatuses', 'totalUnits',
             'readyCount', 'standbyCount', 'downCount',
             'chartMainDev', 'chartSorlim', 'chartBigFleet'
@@ -104,7 +113,7 @@ class AdminController extends Controller
                         $row->created_at->format('Y-m-d H:i:s'),
                         $row->attendance_code,
                         $row->employee->name ?? '-',
-                        $row->project,
+                        $row->project->name ?? '-',
                         $row->presence_status,
                         $row->blood_pressure,
                         $row->spo2,
@@ -116,8 +125,8 @@ class AdminController extends Controller
                     fputcsv($file, [
                         $row->created_at->format('Y-m-d H:i:s'),
                         ($row->unit->no_kendaraan ?? '-') . ' (' . ($row->unit->jenis_alat ?? '-') . ')',
-                        $row->operator_name,
-                        $row->project,
+                        $row->operator->name ?? '-',
+                        $row->project->name ?? '-',
                         $row->status,
                         $row->location,
                         $row->damage_type,

@@ -3,8 +3,8 @@
 @section('title', 'Fit To Work')
 
 @section('header')
-{{-- ═══ GRADIENT HEADER CARD ═══════════════════════════════════════════ --}}
-<div class="w-full max-w-md relative overflow-hidden" style="background: linear-gradient(140deg, #16A34A 0%, #059669 55%, #047857 100%); border-radius: 0 0 28px 28px;">
+{{-- ═══ INDUSTRIAL HEADER CARD ═══════════════════════════════════════════ --}}
+<div class="w-full max-w-md relative overflow-hidden" style="background: #16A34A; border-radius: 0 0 20px 20px; border-bottom: 4px solid #15803D;">
 
     {{-- Decorative circles --}}
     <div class="absolute -bottom-6 -left-6 w-32 h-32 rounded-full opacity-10" style="background: #FFFFFF;"></div>
@@ -21,8 +21,8 @@
         </div>
 
         {{-- Title block --}}
-        <h1 class="text-3xl font-black text-white tracking-tight leading-tight mb-1">FIT TO WORK</h1>
-        <p class="text-sm font-medium" style="color: rgba(255,255,255,0.7);">PT. TRI MACHMUD JAYA &mdash; Absensi Harian</p>
+        <h1 class="text-3xl font-black text-white tracking-tighter leading-tight mb-1 uppercase">Fit To Work</h1>
+        <p class="text-[10px] font-black uppercase tracking-[0.2em]" style="color: rgba(255,255,255,0.5);">PT. TRI MACHMUD JAYA &mdash; Operations Module</p>
 
         {{-- Attendance Code + Date --}}
         <div class="mt-4 flex items-center gap-3">
@@ -147,7 +147,7 @@
 
         {{-- Shift / Project --}}
         <div>
-            <label for="project" class="field-label">
+            <label for="project_id" class="field-label">
                 Shift / Project <span class="text-red-400">*</span>
             </label>
             <div class="relative">
@@ -156,17 +156,20 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
-                <select id="project" name="project" required
-                    class="form-input-field pl-11 pr-10 @error('project') border-red-400 @enderror">
-                    <option value="Main Dev" {{ old('project','Main Dev') == 'Main Dev' ? 'selected' : '' }}>Main Dev</option>
-                    <option value="Sorlim" {{ old('project') == 'Sorlim' ? 'selected' : '' }}>Sorlim</option>
-                    <option value="Big Fleet" {{ old('project') == 'Big Fleet' ? 'selected' : '' }}>Big Fleet</option>
+                <select id="project_id" name="project_id" required
+                    class="form-input-field pl-11 pr-10 @error('project_id') border-red-400 @enderror">
+                    <option value="" disabled selected>— Pilih Project —</option>
+                    @foreach($projects as $proj)
+                        <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>
+                            {{ $proj->name }}
+                        </option>
+                    @endforeach
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
-            @error('project') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span> @enderror
+            @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span> @enderror
         </div>
     </div>
 
@@ -230,16 +233,16 @@
         </div>
 
         {{-- TAK Clearance --}}
-        <div class="flex items-center gap-4 p-4 rounded-2xl" style="background: #F0FDF4; border: 1.5px solid #86EFAC;">
+        <div class="flex items-center gap-4 p-4 rounded-xl" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
             <input type="hidden" id="tak" name="tak" value="{{ old('tak', '1') }}">
             <button type="button" id="tak_toggle" onclick="toggleTAK()"
                 class="flex items-center flex-shrink-0 w-12 h-6 rounded-full p-0.5 transition-all duration-300"
-                style="background: #16A34A;">
+                style="background: #22C55E;">
                 <span id="tak_knob" class="w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300" style="transform: translateX(24px);"></span>
             </button>
             <div>
-                <p class="font-bold text-green-800" style="font-size:0.875rem;">TAK</p>
-                <p class="text-green-600" style="font-size:0.75rem;">Tidak Ada Kelainan</p>
+                <p class="font-black text-slate-700 uppercase tracking-widest" style="font-size:0.75rem;">TAK STATUS</p>
+                <p class="text-slate-400 font-bold uppercase tracking-tight" style="font-size:0.65rem;">No medical abnormality</p>
             </div>
         </div>
 
@@ -316,11 +319,11 @@
 {{-- STICKY SUBMIT BUTTON                       --}}
 {{-- ══════════════════════════════════════════ --}}
 <div class="sticky-submit-bar">
-    <button type="submit" form="attendanceForm" id="submitBtn" class="submit-btn green">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    <button type="submit" form="attendanceForm" id="submitBtn" class="submit-btn" style="background: #16A34A; box-shadow: 0 4px 12px rgba(22,163,74,0.2);">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v5m0 0l-2-2m2 2l2-2M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
         </svg>
-        Submit Attendance
+        REGISTER ATTENDANCE
     </button>
 </div>
 
@@ -412,12 +415,12 @@ function setTAK(checked) {
     const knob = document.getElementById('tak_knob');
     const wrap = btn.closest('.flex.items-center');
     if (checked) {
-        btn.style.background = '#16A34A';
+        btn.style.background = '#22C55E';
         knob.style.transform = 'translateX(24px)';
-        wrap.style.background   = '#F0FDF4';
-        wrap.style.borderColor  = '#86EFAC';
+        wrap.style.background   = '#F8FAFC';
+        wrap.style.borderColor  = '#E2E8F0';
     } else {
-        btn.style.background = '#CBD5E1';
+        btn.style.background = '#94A3B8';
         knob.style.transform = 'translateX(2px)';
         wrap.style.background  = '#F8FAFC';
         wrap.style.borderColor = '#E2E8F0';

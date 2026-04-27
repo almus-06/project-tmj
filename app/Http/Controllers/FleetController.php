@@ -6,12 +6,18 @@ use Illuminate\Http\Request;
 
 use App\Models\UnitStatus;
 use App\Models\Unit;
+use App\Models\Employee;
+use App\Models\Project;
+use Illuminate\Support\Facades\Cache;
 
-class UnitStatusController extends Controller
+class FleetController extends Controller
 {
     public function create(Request $request, $qr_code = null)
     {
-        $units = Unit::all();
+        $units = Cache::remember('units_list', 86400, fn() => Unit::all());
+        $employees = Cache::remember('employees_list', 86400, fn() => Employee::orderBy('name')->get());
+        $projects = Cache::remember('projects_list', 86400, fn() => Project::orderBy('name')->get());
+        
         $selectedUnitId = $request->get('unit_id');
         $isLocked = false;
 
@@ -27,27 +33,27 @@ class UnitStatusController extends Controller
             }
         }
         
-        return view('unit_status.create', compact('units', 'selectedUnitId', 'isLocked'));
+        return view('forms.fleet', compact('units', 'employees', 'projects', 'selectedUnitId', 'isLocked'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'unit_id'       => 'required|exists:units,id',
-            'operator_name' => 'required|string',
+            'operator_id'   => 'required|exists:employees,id',
             'status'        => 'required|string|in:Ready,Standby,Down',
             'location'      => 'required|string',
             'damage_type'   => 'required_if:status,Down',
             'hm'            => 'required|numeric',
             'km'            => 'required|numeric',
-            'project'       => 'required|string'
+            'project_id'    => 'required|exists:projects,id'
         ]);
 
         $record = UnitStatus::create($validated);
         
         $unit = Unit::find($record->unit_id);
 
-        return redirect()->route('unit.status.success')
+        return redirect()->route('fleet.success')
             ->with('submission_id', '#UNIT-' . str_pad($record->id, 5, '0', STR_PAD_LEFT))
             ->with('unit_number', $unit->no_kendaraan ?? '—')
             ->with('submission_time', $record->created_at->format('d M Y, H:i'))

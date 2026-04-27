@@ -51,10 +51,27 @@ body {
     color: #374151;
 }
 
+/* Industrial Design System Tokens */
+:root {
+    --tmj-green: #16a34a;
+    --tmj-amber: #d97706;
+    --tmj-red: #dc2626;
+    --tmj-slate: #475569;
+}
+
 /* Indicators */
-.indicator-green { background-color: #16a34a !important; color: white !important; }
-.indicator-red { background-color: #dc2626 !important; color: white !important; }
-.indicator-yellow { background-color: #eab308 !important; color: black !important; }
+.indicator-green { background-color: var(--tmj-green) !important; color: white !important; }
+.indicator-red { background-color: var(--tmj-red) !important; color: white !important; }
+.indicator-yellow { background-color: var(--tmj-amber) !important; color: white !important; }
+
+/* Theme Color Utilities */
+.tmj-text-green { color: var(--tmj-green); }
+.tmj-text-amber { color: var(--tmj-amber); }
+.tmj-text-red { color: var(--tmj-red); }
+
+.tmj-border-green { border-color: var(--tmj-green); }
+.tmj-border-amber { border-color: var(--tmj-amber); }
+.tmj-border-red { border-color: var(--tmj-red); }
 
 /* Pulse animation for real-time vibe */
 .animate-pulse-slow {
