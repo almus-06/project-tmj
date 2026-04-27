@@ -14,9 +14,15 @@ class FleetController extends Controller
 {
     public function create(Request $request, $qr_code = null)
     {
-        $units = Cache::remember('units_list', 86400, fn() => Unit::all());
-        $employees = Cache::remember('employees_list', 86400, fn() => Employee::orderBy('name')->get());
-        $projects = Cache::remember('projects_list', 86400, fn() => Project::orderBy('name')->get());
+        $units = Unit::hydrate(
+            Cache::remember('units_list', 86400, fn () => Unit::all()->toArray())
+        );
+        $employees = Employee::hydrate(
+            Cache::remember('employees_list', 86400, fn () => Employee::orderBy('name')->get()->toArray())
+        );
+        $projects = Project::hydrate(
+            Cache::remember('projects_list', 86400, fn () => Project::orderBy('name')->get()->toArray())
+        );
         
         $selectedUnitId = $request->get('unit_id');
         $isLocked = false;
