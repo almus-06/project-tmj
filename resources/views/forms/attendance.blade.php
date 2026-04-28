@@ -471,7 +471,8 @@ function setTAK(checked) {
     document.getElementById('tak').value = checked ? '1' : '0';
     const btn  = document.getElementById('tak_toggle');
     const knob = document.getElementById('tak_knob');
-    const wrap = btn.closest('.flex.items-center');
+    const wrap = btn.parentElement; // Ambil parent langsung (div kartu)
+    
     if (checked) {
         btn.style.background = '#22C55E';
         knob.style.transform = 'translateX(24px)';
