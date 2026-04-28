@@ -8,12 +8,29 @@
     "require": {
         "php": "8.3.*",
         "laravel/framework": "^13.0",
-        "laravel/tinker": "^3.0",
-        "symfony/http-foundation": "^7.4",
-        "symfony/http-kernel": "^7.4",
-        "symfony/console": "^7.4",
-        "symfony/process": "^7.4",
-        "symfony/routing": "^7.4"
+        "laravel/tinker": "^3.0"
+    },
+    "conflict": {
+        "symfony/clock": "8.*",
+        "symfony/console": "8.*",
+        "symfony/css-selector": "8.*",
+        "symfony/error-handler": "8.*",
+        "symfony/event-dispatcher": "8.*",
+        "symfony/event-dispatcher-contracts": "8.*",
+        "symfony/finder": "8.*",
+        "symfony/http-foundation": "8.*",
+        "symfony/http-kernel": "8.*",
+        "symfony/mailer": "8.*",
+        "symfony/mime": "8.*",
+        "symfony/process": "8.*",
+        "symfony/routing": "8.*",
+        "symfony/service-contracts": "8.*",
+        "symfony/string": "8.*",
+        "symfony/translation": "8.*",
+        "symfony/translation-contracts": "8.*",
+        "symfony/uid": "8.*",
+        "symfony/var-dumper": "8.*",
+        "symfony/yaml": "8.*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
