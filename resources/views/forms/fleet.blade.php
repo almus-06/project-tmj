@@ -48,7 +48,31 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('fleet.store') }}" method="POST" id="unitForm">
+    <form action="{{ route('fleet.store') }}" method="POST" id="unitForm" x-data="{
+        telemetryType: '', 
+        
+        getTelemetry(jenis) {
+            if (!jenis) return '';
+            const j = jenis.toLowerCase();
+            const kmList = ['wt', 'dt', 'dw', 'fuel truck', 'bus', 'low boy', 'lv'];
+            const hmList = ['exca', 'grader', 'compactor', 'dozer'];
+            
+            if (kmList.some(k => j.includes(k))) return 'km';
+            if (hmList.some(h => j.includes(h))) return 'hm';
+            return 'km';
+        },
+
+        init() {
+            @if($selectedUnitId || old('unit_id'))
+                @php
+                    $initUnit = $units->firstWhere('id', old('unit_id') ?? $selectedUnitId);
+                @endphp
+                @if($initUnit)
+                    this.telemetryType = this.getTelemetry('{{ $initUnit->jenis_alat }}');
+                @endif
+            @endif
+        }
+    }">
         @csrf
 
         @if($errors->any())
@@ -85,25 +109,26 @@
             </p>
 
             <div x-data="{
-                                            search: '',
-                                            open: false,
-                                            isLocked: {{ $isLocked ? 'true' : 'false' }},
-                                            selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : ' Nomor Unit' }}',
-                                            selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
-                                            units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
-        return ['id' => $u->id, 'name' => $u->no_kendaraan . ' — ' . $u->jenis_alat, 'raw_no' => $u->no_kendaraan]; })->toJson() }},
-                                            get filteredUnits() {
-                                                if (this.search === '') return this.units;
-                                                return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
-                                            },
-                                            selectUnit(u) {
-                                                if (this.isLocked) return;
-                                                this.selectedId = u.id;
-                                                this.selectedName = u.name;
-                                                this.search = '';
-                                                this.open = false;
-                                            }
-                                        }">
+                                                    search: '',
+                                                    open: false,
+                                                    isLocked: {{ $isLocked ? 'true' : 'false' }},
+                                                    selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : 'Pilih Nomor Unit' }}',
+                                                    selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
+                                                    units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
+        return ['id' => $u->id, 'name' => $u->no_kendaraan . ' — ' . $u->jenis_alat, 'raw_no' => $u->no_kendaraan, 'jenis' => $u->jenis_alat]; })->toJson() }},
+                                                    get filteredUnits() {
+                                                        if (this.search === '') return this.units;
+                                                        return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
+                                                    },
+                                                    selectUnit(u) {
+                                                        if (this.isLocked) return;
+                                                        this.selectedId = u.id;
+                                                        this.selectedName = u.name;
+                                                        this.search = '';
+                                                        this.open = false;
+                                                        this.telemetryType = this.getTelemetry(u.jenis);
+                                                    }
+                                                }">
                 <label for="unit_search_input" class="field-label">Nomor Unit <span class="text-red-400">*</span></label>
                 <div class="relative" @click.away="open = false; search = ''">
                     {{-- Hidden Real Input --}}
@@ -167,7 +192,7 @@
                                     class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex flex-col">
                                     <span class="text-sm font-bold text-slate-700" x-text="u.raw_no"></span>
                                     <span class="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-tight"
-                                        x-text="u.name.split(' — ')[1]"></span>
+                                        x-text="u.jenis"></span>
                                 </div>
                             </template>
 
@@ -213,66 +238,175 @@
             </p>
 
             {{-- Operator Name (Employee) --}}
-            <div class="mb-4">
-                <label for="operator_id" class="field-label">Nama Operator <span class="text-red-400">*</span></label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+            <div class="mb-4" x-data="{
+                search: '',
+                open: false,
+                selectedName: '{{ old('operator_id') ? $employees->firstWhere('id', old('operator_id'))->name : 'Pilih Nama Operator' }}',
+                selectedId: '{{ old('operator_id', '') }}',
+                employees: {{ $employees->map(function($emp) { return ['id' => $emp->id, 'name' => $emp->name, 'pos' => $emp->position]; })->toJson() }},
+                get filteredEmployees() {
+                    if (this.search === '') return this.employees;
+                    return this.employees.filter(emp => emp.name.toLowerCase().startsWith(this.search.toLowerCase()));
+                },
+                selectEmployee(emp) {
+                    this.selectedId = emp.id;
+                    this.selectedName = emp.name;
+                    this.search = '';
+                    this.open = false;
+                }
+            }">
+                <label for="employee_search_input" class="field-label">
+                    Nama Operator <span class="text-red-400">*</span>
+                </label>
+                <div class="relative" @click.away="open = false; search = ''">
+                    {{-- Hidden Real Input --}}
+                    <input type="hidden" name="operator_id" :value="selectedId" required>
+
+                    {{-- Trigger / Search Input --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="w-4.5 h-4.5 text-slate-400" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            id="employee_search_input"
+                            class="form-input-field pl-11 pr-10 cursor-pointer"
+                            :placeholder="selectedName"
+                            x-model="search"
+                            @click="open = true"
+                            @keydown.escape="open = false; search = ''"
+                            autocomplete="off"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                            <button type="button" @click="open = !open" tabindex="-1" class="text-slate-400 hover:text-slate-600 focus:outline-none p-2 rounded-full transition-colors">
+                                <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <select id="operator_id" name="operator_id" required
-                        class="form-input-field pl-11 pr-10 @error('operator_id') border-red-400 @enderror">
-                        <option value="" disabled selected>— Pilih Operator —</option>
-                        @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}" {{ old('operator_id') == $emp->id ? 'selected' : '' }}>
-                                {{ $emp->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
+
+                    {{-- Dropdown Results --}}
+                    <div
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                        class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                        style="max-height: 480px; display: none;"
+                    >
+                        <div class="custom-scrollbar" style="max-height: 380px; overflow-y: auto; overflow-x: hidden;">
+                            <template x-for="emp in filteredEmployees" :key="emp.id">
+                                <div
+                                    @click="selectEmployee(emp)"
+                                    class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex flex-col"
+                                >
+                                    <span class="text-sm font-bold text-slate-700" x-text="emp.name"></span>
+                                    <span class="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-tight" x-text="emp.pos"></span>
+                                </div>
+                            </template>
+
+                            <div x-show="filteredEmployees.length === 0" class="px-4 py-8 text-center">
+                                <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <p class="text-xs font-bold text-slate-400">Operator tidak ditemukan</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                @error('operator_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
-                @enderror
+                @error('operator_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</span> @enderror
             </div>
 
             {{-- Project --}}
-            <div>
-                <label for="project_id" class="field-label">Project <span class="text-red-400">*</span></label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+            <div x-data="{
+                search: '',
+                open: false,
+                selectedName: '{{ old('project_id') ? $projects->firstWhere('id', old('project_id'))->name : 'Pilih Nama Project' }}',
+                selectedId: '{{ old('project_id', '') }}',
+                projects: {{ $projects->map(function($p) { return ['id' => $p->id, 'name' => $p->name]; })->toJson() }},
+                get filteredProjects() {
+                    if (this.search === '') return this.projects;
+                    return this.projects.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
+                },
+                selectProject(p) {
+                    this.selectedId = p.id;
+                    this.selectedName = p.name;
+                    this.search = '';
+                    this.open = false;
+                }
+            }">
+                <label for="project_search_input" class="field-label">Project <span class="text-red-400">*</span></label>
+                <div class="relative" @click.away="open = false; search = ''">
+                    {{-- Hidden Real Input --}}
+                    <input type="hidden" name="project_id" :value="selectedId" required>
+
+                    {{-- Trigger / Search Input --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            id="project_search_input"
+                            class="form-input-field pl-11 pr-10 cursor-pointer"
+                            :placeholder="selectedName"
+                            x-model="search"
+                            @click="open = true"
+                            @keydown.escape="open = false; search = ''"
+                            autocomplete="off"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                            <button type="button" @click="open = !open" tabindex="-1" class="text-slate-400 hover:text-slate-600 focus:outline-none p-2 rounded-full transition-colors">
+                                <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <select id="project_id" name="project_id" required
-                        class="form-input-field pl-11 pr-10 @error('project_id') border-red-400 @enderror">
-                        <option value="" disabled selected>— Pilih Project —</option>
-                        @foreach($projects as $proj)
-                            <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>
-                                {{ $proj->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
+
+                    {{-- Dropdown Results --}}
+                    <div
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                        class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                        style="max-height: 300px; display: none;"
+                    >
+                        <div class="custom-scrollbar" style="max-height: 250px; overflow-y: auto; overflow-x: hidden;">
+                            <template x-for="p in filteredProjects" :key="p.id">
+                                <div
+                                    @click="selectProject(p)"
+                                    class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex flex-col"
+                                >
+                                    <span class="text-sm font-bold text-slate-700" x-text="p.name"></span>
+                                </div>
+                            </template>
+
+                            <div x-show="filteredProjects.length === 0" class="px-4 py-8 text-center">
+                                <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                <p class="text-xs font-bold text-slate-400">Project tidak ditemukan</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
-                @enderror
+                @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</span> @enderror
             </div>
         </div>
 
@@ -393,12 +527,12 @@
             </div>
 
             {{-- HM / KM --}}
-            <div class="grid grid-cols-2 gap-3">
-                <div>
+            <div class="grid grid-cols-1 gap-3">
+                <div x-show="telemetryType === 'hm'">
                     <label for="hm" class="field-label">Hour Meter <span class="text-slate-400 normal-case font-normal"
-                            style="font-size:0.65rem;">(H/M)</span></label>
+                            style="font-size:0.65rem;">(H/M)</span> <span class="text-red-400">*</span></label>
                     <div class="relative">
-                        <input type="number" step="0.1" id="hm" name="hm" required placeholder="H/M saat ini"
+                        <input type="number" step="0.1" id="hm" name="hm" :required="telemetryType === 'hm'" placeholder="H/M saat ini"
                             value="{{ old('hm') }}"
                             class="form-input-field font-black @error('hm') border-red-400 @enderror"
                             style="padding-right: 40px;">
@@ -409,11 +543,11 @@
                     @error('hm') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
                     @enderror
                 </div>
-                <div>
+                <div x-show="telemetryType === 'km'">
                     <label for="km" class="field-label">Kilometer <span class="text-slate-400 normal-case font-normal"
-                            style="font-size:0.65rem;">(KM)</span></label>
+                            style="font-size:0.65rem;">(KM)</span> <span class="text-red-400">*</span></label>
                     <div class="relative">
-                        <input type="number" step="0.1" id="km" name="km" required placeholder="KM saat ini"
+                        <input type="number" step="0.1" id="km" name="km" :required="telemetryType === 'km'" placeholder="KM saat ini"
                             value="{{ old('km') }}"
                             class="form-input-field font-black @error('km') border-red-400 @enderror"
                             style="padding-right: 40px;">
@@ -423,6 +557,10 @@
                     </div>
                     @error('km') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span>
                     @enderror
+                </div>
+                {{-- Fallback message if no unit selected --}}
+                <div x-show="telemetryType === ''" class="p-4 text-center border-2 border-dashed border-slate-100 rounded-xl">
+                    <p class="text-xs font-bold text-slate-300 italic">Pilih nomor unit terlebih dahulu</p>
                 </div>
             </div>
         </div>
@@ -503,9 +641,9 @@
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = `<svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg> Menyimpan...`;
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg> Menyimpan...`;
         });
     </script>
 @endsection

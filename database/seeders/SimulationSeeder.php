@@ -10,6 +10,7 @@ use App\Models\UnitStatus;
 use App\Models\Project;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class SimulationSeeder extends Seeder
@@ -18,62 +19,84 @@ class SimulationSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('id_ID');
 
-        // Create 500 Employees
-        $employees = [];
-        for ($i = 0; $i < 500; $i++) {
-            $employees[] = Employee::create([
-                'name' => $faker->name,
-                'position' => $faker->randomElement(['Operator', 'Mekanik', 'Driver', 'Foreman', 'Supervisor']),
-            ]);
-        }
+        // Bersihkan data lama agar simulasi 1 tahun ini akurat
+        Schema::disableForeignKeyConstraints();
+        Attendance::truncate();
+        UnitStatus::truncate();
+        Schema::enableForeignKeyConstraints();
 
-        // Create 500 Units
-        $units = [];
-        for ($i = 0; $i < 500; $i++) {
-            $units[] = Unit::create([
-                'no_kendaraan' => 'DT-' . $faker->unique()->numberBetween(10000, 99999),
-                'jenis_alat' => $faker->randomElement(['Dump Truck', 'Excavator', 'Dozer', 'Grader']),
-                'ct' => $faker->word,
-            ]);
-        }
-
+        $employees = Employee::all();
+        $units = Unit::all();
         $projects = Project::all();
 
-        // Create 500 Attendances for Today
-        $todayPrefix = 'FitToWork-TMJ-' . now()->format('dmy');
-        foreach ($employees as $index => $emp) {
-            $code = $todayPrefix . '-' . Str::uuid()->toString();
-            
-            Attendance::create([
-                'attendance_code' => $code,
-                'employee_id' => $emp->id,
-                'project_id' => $projects->random()->id,
-                'presence_status' => $faker->randomElement(['Hadir', 'Hadir', 'Hadir', 'Izin', 'Cuti', 'Tidak Hadir']),
-                'blood_pressure' => $faker->numberBetween(110, 130) . '/' . $faker->numberBetween(70, 90),
-                'spo2' => $faker->numberBetween(95, 100),
-                'temperature' => $faker->randomFloat(1, 36.0, 37.5),
-                'tak' => $faker->boolean(90),
-                'fit_status' => $faker->randomElement(['Fit', 'Fit', 'Fit', 'Unfit']),
-                'created_at' => Carbon::today()->addHours(rand(6, 9))->addMinutes(rand(0, 59)),
-                'updated_at' => now(),
-            ]);
+        if ($employees->isEmpty()) {
+            $this->command->error('Data Karyawan kosong!');
+            return;
         }
 
-        // Create 500 Unit Statuses
-        for ($i = 0; $i < 500; $i++) {
-            $status = $faker->randomElement(['Ready', 'Ready', 'Standby', 'Down']);
-            UnitStatus::create([
-                'unit_id' => $faker->randomElement($units)->id,
-                'operator_id' => $faker->randomElement($employees)->id,
-                'project_id' => $projects->random()->id,
-                'status' => $status,
-                'location' => $faker->city,
-                'damage_type' => $status === 'Down' ? $faker->sentence : null,
-                'hm' => $faker->randomFloat(1, 1000, 5000),
-                'km' => $faker->randomFloat(1, 10000, 50000),
-                'created_at' => Carbon::today()->addHours(rand(6, 17))->addMinutes(rand(0, 59)),
-                'updated_at' => now(),
-            ]);
+        $totalDays = 365;
+        $this->command->info("Memulai simulasi $totalDays hari (1 tahun) untuk " . $employees->count() . " karyawan...");
+
+        $hmList = ['exca', 'grader', 'compactor', 'dozer'];
+
+        // Loop per hari
+        for ($i = $totalDays; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            
+            // Info progres setiap 30 hari
+            if ($i % 30 == 0) {
+                $this->command->info("Memproses data sisa: $i hari lagi...");
+            }
+
+            $attendanceData = [];
+            $fleetData = [];
+
+            foreach ($employees as $emp) {
+                $time = (clone $date)->addHours(rand(6, 8))->addMinutes(rand(0, 59));
+                
+                $attendanceData[] = [
+                    'attendance_code' => 'FTW-' . $date->format('ymd') . '-' . strtoupper(Str::random(6)),
+                    'employee_id' => $emp->id,
+                    'project_id' => $projects->random()->id,
+                    'presence_status' => $faker->randomElement(['Hadir', 'Hadir', 'Hadir', 'Hadir', 'Izin', 'Cuti']),
+                    'blood_pressure' => rand(110, 130) . '/' . rand(70, 85),
+                    'spo2' => rand(97, 100),
+                    'temperature' => $faker->randomFloat(1, 36.1, 37.2),
+                    'tak' => true,
+                    'fit_status' => 'Fit',
+                    'created_at' => $time,
+                    'updated_at' => $time,
+                ];
+
+                $isOperator = Str::contains(strtolower($emp->position), ['op', 'operator', 'driver']);
+                if ($isOperator && rand(1, 10) > 3) {
+                    $unit = $units->random();
+                    $isHm = false;
+                    foreach($hmList as $h) { if(stripos($unit->jenis_alat, $h) !== false) $isHm = true; }
+
+                    $fleetData[] = [
+                        'unit_id' => $unit->id,
+                        'operator_id' => $emp->id,
+                        'project_id' => $projects->random()->id,
+                        'status' => $faker->randomElement(['Ready', 'Ready', 'Standby']),
+                        'location' => 'PIT AREA ' . $faker->randomElement(['A', 'B', 'C']),
+                        'hm' => $isHm ? rand(1000, 9999) : 0,
+                        'km' => !$isHm ? rand(10000, 99999) : 0,
+                        'created_at' => (clone $time)->addMinutes(rand(10, 30)),
+                        'updated_at' => (clone $time)->addMinutes(rand(10, 30)),
+                    ];
+                }
+            }
+
+            // Bulk Insert
+            DB::table('attendances')->insert($attendanceData);
+            if (!empty($fleetData)) {
+                DB::table('unit_statuses')->insert($fleetData);
+            }
         }
+
+        $this->command->info('Simulasi 1 tahun selesai!');
+        $this->command->info('Total Record Absensi: ' . Attendance::count());
+        $this->command->info('Total Record Fleet: ' . UnitStatus::count());
     }
 }

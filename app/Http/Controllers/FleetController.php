@@ -49,11 +49,16 @@ class FleetController extends Controller
             'operator_id'   => 'required|exists:employees,id',
             'status'        => 'required|string|in:Ready,Standby,Down',
             'location'      => 'required|string',
-            'damage_type'   => 'required_if:status,Down',
-            'hm'            => 'required|numeric',
-            'km'            => 'required|numeric',
+            'damage_type'   => 'nullable|string',
+            'hm'            => 'nullable|numeric',
+            'km'            => 'nullable|numeric',
             'project_id'    => 'required|exists:projects,id'
         ]);
+
+        // Default to 0 if null to avoid DB integrity constraint
+        $validated['hm'] = $validated['hm'] ?? 0;
+        $validated['km'] = $validated['km'] ?? 0;
+        $validated['damage_type'] = $validated['damage_type'] ?? null;
 
         $record = UnitStatus::create($validated);
         

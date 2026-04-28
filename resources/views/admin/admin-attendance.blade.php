@@ -164,7 +164,7 @@
                     @forelse($attendances as $row)
                         @php
                             $name = $row->employee->name ?? '—';
-                            $initials = strtoupper(implode('', array_map(fn($w) => $w[0], explode(' ', trim($name)))));
+                            $initials = strtoupper(implode('', array_map(fn($w) => $w[0], array_filter(explode(' ', trim($name))))));
                             $initials = substr($initials, 0, 2);
                             $avatarColors = ['#DBEAFE,#1D4ED8', '#DCF7E6,#16A34A', '#FEF3C7,#92400E', '#EDE9FE,#5B21B6', '#FCE7F3,#9D174D'];
                             $colorPair = explode(',', $avatarColors[abs(crc32($name)) % count($avatarColors)]);

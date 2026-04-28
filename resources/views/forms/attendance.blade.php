@@ -63,7 +63,7 @@
         <div class="mb-4" x-data="{
             search: '',
             open: false,
-            selectedName: '{{ old('employee_id') ? $employees->firstWhere('id', old('employee_id'))->name : 'Pilih karyawan...' }}',
+            selectedName: '{{ old('employee_id') ? $employees->firstWhere('id', old('employee_id'))->name : 'Pilih Nama Karyawan' }}',
             selectedId: '{{ old('employee_id', '') }}',
             employees: {{ $employees->map(function($emp) { return ['id' => $emp->id, 'name' => $emp->name, 'pos' => $emp->position]; })->toJson() }},
             get filteredEmployees() {
@@ -146,30 +146,88 @@
         </div>
 
         {{-- Shift / Project --}}
-        <div>
-            <label for="project_id" class="field-label">
+        <div x-data="{
+            search: '',
+            open: false,
+            selectedName: '{{ old('project_id') ? $projects->firstWhere('id', old('project_id'))->name : 'Pilih Nama Project' }}',
+            selectedId: '{{ old('project_id', '') }}',
+            projects: {{ $projects->map(function($p) { return ['id' => $p->id, 'name' => $p->name]; })->toJson() }},
+            get filteredProjects() {
+                if (this.search === '') return this.projects;
+                return this.projects.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
+            },
+            selectProject(p) {
+                this.selectedId = p.id;
+                this.selectedName = p.name;
+                this.search = '';
+                this.open = false;
+            }
+        }">
+            <label for="project_search_input" class="field-label">
                 Shift / Project <span class="text-red-400">*</span>
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
+            <div class="relative" @click.away="open = false; search = ''">
+                {{-- Hidden Real Input --}}
+                <input type="hidden" name="project_id" :value="selectedId" required>
+
+                {{-- Trigger / Search Input --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg style="width:18px;height:18px;" class="text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <input
+                        type="text"
+                        id="project_search_input"
+                        class="form-input-field pl-11 pr-10 cursor-pointer"
+                        :placeholder="selectedName"
+                        x-model="search"
+                        @click="open = true"
+                        @keydown.escape="open = false; search = ''"
+                        autocomplete="off"
+                    >
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <button type="button" @click="open = !open" tabindex="-1" class="text-slate-400 hover:text-slate-600 focus:outline-none p-2 rounded-full transition-colors">
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <select id="project_id" name="project_id" required
-                    class="form-input-field pl-11 pr-10 @error('project_id') border-red-400 @enderror">
-                    <option value="" disabled selected>— Pilih Project —</option>
-                    @foreach($projects as $proj)
-                        <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>
-                            {{ $proj->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+
+                {{-- Dropdown Results --}}
+                <div
+                    x-show="open"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                    class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                    style="max-height: 300px; display: none;"
+                >
+                    <div class="custom-scrollbar" style="max-height: 250px; overflow-y: auto; overflow-x: hidden;">
+                        <template x-for="p in filteredProjects" :key="p.id">
+                            <div
+                                @click="selectProject(p)"
+                                class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex flex-col"
+                            >
+                                <span class="text-sm font-bold text-slate-700" x-text="p.name"></span>
+                            </div>
+                        </template>
+
+                        <div x-show="filteredProjects.length === 0" class="px-4 py-8 text-center">
+                            <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <p class="text-xs font-bold text-slate-400">Project tidak ditemukan</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block">{{ $message }}</span> @enderror
+            @error('project_id') <span class="text-xs text-red-500 font-semibold mt-1.5 block flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</span> @enderror
         </div>
     </div>
 

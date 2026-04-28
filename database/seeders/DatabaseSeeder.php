@@ -16,38 +16,37 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'Admin System',
+            'name' => 'Developer',
+            'email' => 'dev@tmj.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Administator',
             'email' => 'admin@tmj.com',
             'password' => bcrypt('password'),
             'role' => 'admin'
         ]);
 
         User::factory()->create([
-            'name' => 'Supervisor TMJ',
-            'email' => 'spv@tmj.com',
-            'password' => bcrypt('password'),
-            'role' => 'supervisor'
-        ]);
-
-        User::factory()->create([
-            'name' => 'HRD TMJ',
-            'email' => 'hrd@tmj.com',
+            'name' => 'Human Resource TMJ',
+            'email' => 'hr@tmj.com',
             'password' => bcrypt('password'),
             'role' => 'hrd'
         ]);
 
         User::factory()->create([
-            'name' => 'Kepala Workshop',
+            'name' => 'Workshop',
             'email' => 'workshop@tmj.com',
             'password' => bcrypt('password'),
             'role' => 'workshop'
         ]);
 
-        \App\Models\Employee::create(['name' => 'John Doe', 'position' => 'Operator']);
-        \App\Models\Employee::create(['name' => 'Jane Smith', 'position' => 'Mechanic']);
-        
-        $this->call([
-            UnitSeeder::class,
-        ]);
+        \App\Models\Employee::create(['name' => 'Ali Mussa Tangke Danga', 'position' => 'Magang']);
+        \App\Models\Employee::create(['name' => 'Nikita Maretia', 'position' => 'Magang']);
+        \App\Models\Employee::create(['name' => 'Suci Rahmadhani Z', 'position' => 'Magang']);
+
+
     }
 }
