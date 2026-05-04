@@ -12,15 +12,15 @@ class OperationsController extends Controller
 {
     public function dashboard()
     {
-        $fitCount   = Attendance::whereDate('created_at', today())->where('fit_status', 'Fit')->count();
+        $fitCount = Attendance::whereDate('created_at', today())->where('fit_status', 'Fit')->count();
         $unfitCount = Attendance::whereDate('created_at', today())->where('fit_status', 'Unfit')->count();
-        
-        $latestStatuses = UnitStatus::whereIn('id', function($query) {
+
+        $latestStatuses = UnitStatus::whereIn('id', function ($query) {
             $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
         })->get();
-        
-        $readyCount  = $latestStatuses->where('status', 'Ready')->count();
-        $downCount   = $latestStatuses->where('status', 'Down')->count();
+
+        $readyCount = $latestStatuses->where('status', 'Ready')->count();
+        $downCount = $latestStatuses->where('status', 'Down')->count();
 
         return view('admin.admin-dashboard', compact('fitCount', 'unfitCount', 'readyCount', 'downCount'));
     }
@@ -29,22 +29,51 @@ class OperationsController extends Controller
     {
         $query = Attendance::with(['employee', 'project'])->latest();
 
-        if ($request->filled('date'))    $query->whereDate('created_at', $request->date);
-        if ($request->filled('project')) $query->whereHas('project', fn($q) => $q->where('name', $request->project));
-        if ($request->filled('status'))  $query->where('presence_status', $request->status);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+        if ($request->filled('project'))
+            $query->whereHas('project', fn($q) => $q->where('name', $request->project));
+        if ($request->filled('status'))
+            $query->where('presence_status', $request->status);
 
-        if ($request->get('export') == 'csv') {
+        if ($request->input('export') == 'csv') {
             return $this->exportCsv($query->get(), 'attendances');
         }
 
-        $attendances = $query->paginate(20);
+        $attendances = $query->paginate(35)->withQueryString();
 
-        // Stats version Karyawan (Daily Summary)
-        $todayQuery = Attendance::whereDate('created_at', now()->toDateString());
-        $hadirCount  = $todayQuery->clone()->where('presence_status', 'Hadir')->count();
-        $unfitCount  = $todayQuery->clone()->where('fit_status', 'Unfit')->count();
-        $leaveCount  = $todayQuery->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
-        $alphaCount  = $todayQuery->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
+        // Stats version Karyawan (Filtered Summary)
+        $statsQuery = Attendance::query();
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $statsQuery->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $statsQuery->whereDate('created_at', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $statsQuery->whereDate('created_at', '<=', $request->end_date);
+        } elseif (!$request->filled('start_date') && !$request->filled('end_date')) {
+            // Default to today if no date filter is applied to keep summary relevant
+            $statsQuery->whereDate('created_at', now()->toDateString());
+        }
+
+        if ($request->filled('project')) {
+            $statsQuery->whereHas('project', fn($q) => $q->where('name', $request->project));
+        }
+
+        $hadirCount = $statsQuery->clone()->where('presence_status', 'Hadir')->count();
+        $unfitCount = $statsQuery->clone()->where('fit_status', 'Unfit')->count();
+        $leaveCount = $statsQuery->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
+        $alphaCount = $statsQuery->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
 
         return view('admin.admin-attendance', compact('attendances', 'hadirCount', 'unfitCount', 'leaveCount', 'alphaCount'));
     }
@@ -54,35 +83,68 @@ class OperationsController extends Controller
         $latestIdsQuery = UnitStatus::selectRaw('MAX(id)')->groupBy('unit_id');
         $query = UnitStatus::with(['unit', 'operator', 'project'])->whereIn('id', $latestIdsQuery)->latest();
 
-        if ($request->filled('date'))    $query->whereDate('created_at', $request->date);
-        if ($request->filled('project')) $query->whereHas('project', fn($q) => $q->where('name', $request->project));
-        if ($request->filled('status'))  $query->where('status', $request->status);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+        if ($request->filled('project'))
+            $query->whereHas('project', fn($q) => $q->where('name', $request->project));
+        if ($request->filled('status'))
+            $query->where('status', $request->status);
 
-        if ($request->get('export') == 'csv') {
+        if ($request->input('export') == 'csv') {
             return $this->exportCsv($query->get(), 'unit_statuses');
         }
 
-        $unitStatuses = $query->paginate(20);
+        $unitStatuses = $query->paginate(35)->withQueryString();
 
-        // Summary counts from exactly the latest submitted status of each physical unit
-        $latestPerUnit = UnitStatus::with('project')->whereIn('id', function($query) {
-            $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
-        })->get();
+        // Stats version Fleet (Filtered Summary)
+        $statsQuery = UnitStatus::with('project')->whereIn('id', function ($q) {
+            $q->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
+        });
 
-        $totalUnits   = $latestPerUnit->count();
-        $readyCount   = $latestPerUnit->where('status', 'Ready')->count();
-        $standbyCount = $latestPerUnit->where('status', 'Standby')->count();
-        $downCount    = $latestPerUnit->where('status', 'Down')->count();
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $statsQuery->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $statsQuery->whereDate('created_at', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $statsQuery->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        if ($request->filled('project')) {
+            $statsQuery->whereHas('project', fn($q) => $q->where('name', $request->project));
+        }
+
+        $filteredUnits = $statsQuery->get();
+
+        $totalUnits = $filteredUnits->count();
+        $readyCount = $filteredUnits->where('status', 'Ready')->count();
+        $standbyCount = $filteredUnits->where('status', 'Standby')->count();
+        $downCount = $filteredUnits->where('status', 'Down')->count();
 
         // Chart data distribution based on latest project placement
-        $chartMainDev = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Main Dev')->count();
-        $chartSorlim  = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Sorlim')->count();
-        $chartBigFleet = $latestPerUnit->filter(fn($u) => optional($u->project)->name === 'Big Fleet')->count();
+        $chartMainDev = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Main Dev')->count();
+        $chartSorlim = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Sorlim')->count();
+        $chartBigFleet = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Big Fleet')->count();
 
         return view('admin.admin-fleet', compact(
-            'unitStatuses', 'totalUnits',
-            'readyCount', 'standbyCount', 'downCount',
-            'chartMainDev', 'chartSorlim', 'chartBigFleet'
+            'unitStatuses',
+            'totalUnits',
+            'readyCount',
+            'standbyCount',
+            'downCount',
+            'chartMainDev',
+            'chartSorlim',
+            'chartBigFleet'
         ));
     }
 
@@ -90,13 +152,13 @@ class OperationsController extends Controller
     {
         $filename = "export_{$type}_" . date('Ymd_His') . ".csv";
         $headers = [
-            "Content-type"        => "text/csv",
+            "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         ];
-        
+
         $columns = [];
         if ($type == 'attendances') {
             $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status'];
@@ -104,7 +166,7 @@ class OperationsController extends Controller
             $columns = ['Date', 'Unit', 'Operator', 'Project', 'Status', 'Location', 'Damage', 'HM', 'KM'];
         }
 
-        $callback = function() use($data, $columns, $type) {
+        $callback = function () use ($data, $columns, $type) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($data as $row) {

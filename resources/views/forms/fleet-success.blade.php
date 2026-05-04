@@ -70,7 +70,7 @@
             position: absolute;
             inset: 0;
             border-radius: 9999px;
-            background: rgba(37, 99, 235, 0.12);
+            background: rgba(99, 102, 241, 0.12);
             animation: ripple 1.8s ease-out infinite;
         }
 
@@ -97,7 +97,7 @@
             style="box-shadow: 0 8px 40px rgba(15,23,42,0.12);">
 
             {{-- Top gradient bar --}}
-            <div class="h-1.5" style="background: linear-gradient(90deg, #1D4ED8, #3B82F6, #60A5FA);"></div>
+            <div class="h-1.5" style="background: linear-gradient(90deg, #4F46E5, #6366F1, #A78BFA);"></div>
 
             <div class="px-8 pt-8 pb-8 text-center content-animate">
 
@@ -107,7 +107,7 @@
                     <div class="ripple-ring"></div>
                     <div class="ripple-ring"></div>
                     <div class="relative w-20 h-20 rounded-3xl flex items-center justify-center"
-                        style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); box-shadow: 0 8px 20px rgba(37,99,235,0.4);">
+                        style="background: linear-gradient(135deg, #4F46E5, #6366F1); box-shadow: 0 8px 20px rgba(99,102,241,0.4);">
                         <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -142,15 +142,15 @@
 
                 {{-- Status badge --}}
                 <div class="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6"
-                    style="background: #EFF6FF; border: 1.5px solid #BFDBFE;">
-                    <span class="w-2 h-2 rounded-full" style="background: #3B82F6;"></span>
-                    <span class="text-xs font-bold" style="color: #1D4ED8;">UNIT {{ session('status_label', 'REPORT') }} — Logged</span>
+                    style="background: #EEF2FF; border: 1.5px solid #C7D2FE;">
+                    <span class="w-2 h-2 rounded-full" style="background: #6366F1;"></span>
+                    <span class="text-xs font-bold" style="color: #4F46E5;">UNIT {{ session('status_label', 'REPORT') }} — Logged</span>
                 </div>
 
                 {{-- Actions --}}
                 <a href="{{ route('fleet.create') }}"
                     class="block w-full text-center text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98] mb-3"
-                    style="background: linear-gradient(135deg, #1D4ED8, #2563EB); box-shadow: 0 6px 18px rgba(37,99,235,0.35);">
+                    style="background: linear-gradient(135deg, #4F46E5, #6366F1); box-shadow: 0 6px 18px rgba(99,102,241,0.35);">
                     ＋ Submit Laporan Baru
                 </a>
 

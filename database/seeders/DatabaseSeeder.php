@@ -17,29 +17,55 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->create([
             'name' => 'Developer',
-            'email' => 'dev@tmj.com',
-            'password' => bcrypt('password'),
+            'username' => 'almuss',
+            'email' => null,
+            'password' => bcrypt('FksKlh2327'),
             'role' => 'admin'
         ]);
 
         User::factory()->create([
-            'name' => 'Administator',
-            'email' => 'admin@tmj.com',
-            'password' => bcrypt('password'),
-            'role' => 'admin'
-        ]);
-
-        User::factory()->create([
-            'name' => 'Human Resource TMJ',
-            'email' => 'hr@tmj.com',
-            'password' => bcrypt('password'),
+            'name' => 'Inda Ulandari',
+            'username' => 'IndaUlandari',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
             'role' => 'hrd'
         ]);
 
         User::factory()->create([
-            'name' => 'Workshop',
-            'email' => 'workshop@tmj.com',
-            'password' => bcrypt('password'),
+            'name' => 'Syahrul Ramadhan',
+            'username' => 'SyahrulRamadhan',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
+            'role' => 'workshop'
+        ]);
+        User::factory()->create([
+            'name' => 'Ayatollah Khomeni',
+            'username' => 'AyatollahKhomeni',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
+            'role' => 'workshop'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Faldia Kurniawan',
+            'username' => 'FaldiaKurniawan',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
+            'role' => 'workshop'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Rudi Prayogo',
+            'username' => 'RudiPrayogo',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
+            'role' => 'workshop'
+        ]);
+        User::factory()->create([
+            'name' => 'Tam Kholik',
+            'username' => 'TamKholik',
+            'email' => null,
+            'password' => bcrypt('TMJSafetyNumber01'),
             'role' => 'workshop'
         ]);
 

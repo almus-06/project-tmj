@@ -122,12 +122,12 @@
 
                 {{-- Details Card --}}
                 <div class="rounded-2xl p-4 mb-6 text-left" style="background: #F8FAFC; border: 1.5px solid #E8EDF3;">
-                    <div class="flex justify-between items-center py-2.5 border-b" style="border-color: #E8EDF3;">
-                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Submission ID</span>
+                    <div class="py-3 border-b text-center" style="border-color: #E8EDF3;">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Kode Absensi (Submission ID)</span>
                         <span
-                            class="text-xs font-black font-mono text-slate-700">{{ session('submission_id', '#—') }}</span>
+                            class="inline-block text-lg sm:text-xl font-black font-mono text-slate-800 tracking-widest bg-slate-100/80 border border-slate-200 px-4 py-2 rounded-xl">{{ session('submission_id', '#—') }}</span>
                     </div>
-                    <div class="flex justify-between items-center py-2.5">
+                    <div class="flex justify-between items-center py-3 mt-1">
                         <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Timestamp</span>
                         <span
                             class="text-xs font-bold text-slate-700">{{ session('submission_time', now()->format('d M Y, H:i')) }}</span>
@@ -140,14 +140,6 @@
                     <span class="w-2 h-2 rounded-full" style="background: #22C55E;"></span>
                     <span class="text-xs font-bold" style="color: #16A34A;">FIT TO WORK — Approved</span>
                 </div>
-
-                {{-- Actions --}}
-                <a href="{{ route('attendance.create') }}"
-                    class="block w-full text-center text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98] mb-3"
-                    style="background: linear-gradient(135deg, #16A34A, #059669); box-shadow: 0 6px 18px rgba(22,163,74,0.35);">
-                    ＋ Submit Absensi Baru
-                </a>
-
 
             </div>
         </div>

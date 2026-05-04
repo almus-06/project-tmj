@@ -24,7 +24,7 @@ class FleetController extends Controller
             Cache::remember('projects_list', 86400, fn () => Project::orderBy('name')->get()->toArray())
         );
         
-        $selectedUnitId = $request->get('unit_id');
+        $selectedUnitId = $request->input('unit_id');
         $isLocked = false;
 
         if ($qr_code) {

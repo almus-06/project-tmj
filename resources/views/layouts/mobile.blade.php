@@ -12,7 +12,7 @@
             * { -webkit-tap-highlight-color: transparent; }
             body {
                 font-family: 'Inter', sans-serif;
-                background: #F1F5F9;
+                background: #F0EDFF;
                 min-height: 100vh;
             }
 
@@ -65,8 +65,8 @@
                 resize: none;
             }
             .form-input-field:focus {
-                border-color: #3B82F6;
-                box-shadow: 0 0 0 4px rgba(59,130,246,0.12), 0 1px 3px rgba(15,23,42,0.04);
+                border-color: #6366F1;
+                box-shadow: 0 0 0 4px rgba(99,102,241,0.12), 0 1px 3px rgba(15,23,42,0.04);
                 background: #FFFFFF;
             }
             .form-input-field.border-red-400 {
@@ -92,7 +92,7 @@
                 width: 3px;
                 height: 14px;
                 border-radius: 2px;
-                background: #0F172A;
+                background: #6366F1;
                 flex-shrink: 0;
             }
             .section-label.green::before {
@@ -218,13 +218,13 @@
                 border: none;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+                box-shadow: 0 8px 24px rgba(99,102,241,0.35);
                 letter-spacing: 0.01em;
             }
             .submit-btn:active { transform: scale(0.98); }
             .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
-            .submit-btn.green { background: linear-gradient(135deg, #16A34A 0%, #059669 100%); box-shadow: 0 8px 24px rgba(22,163,74,0.35); }
-            .submit-btn.blue  { background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); box-shadow: 0 8px 24px rgba(37,99,235,0.35); }
+            .submit-btn.green { background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 8px 24px rgba(5,150,105,0.35); }
+            .submit-btn.blue  { background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); box-shadow: 0 8px 24px rgba(99,102,241,0.35); }
 
             /* ─── Animations ────────────────────────────────────────── */
             @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }

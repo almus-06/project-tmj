@@ -74,7 +74,7 @@
         <div class="recovery-card">
             
             <div class="mb-8">
-                <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-xl">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-6 shadow-xl">
                     <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                     </svg>
@@ -86,7 +86,7 @@
             </div>
 
             <!-- Session Status -->
-            <x-auth-session-status class="mb-6 text-sm font-bold text-blue-600 bg-blue-50 p-4 rounded-xl border border-blue-100" :status="session('status')" />
+            <x-auth-session-status class="mb-6 text-sm font-bold text-indigo-600 bg-indigo-50 p-4 rounded-xl border border-indigo-100" :status="session('status')" />
 
             <form method="POST" action="{{ route('password.email') }}">
                 @csrf

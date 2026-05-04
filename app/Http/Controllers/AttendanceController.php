@@ -55,12 +55,39 @@ class AttendanceController extends Controller
             'attendance_code.unique' => 'Terjadi benturan kode absensi (Duplicate). Silakan coba lagi.',
         ]);
 
+        // Calculate Shift
+        $project = Project::find($validated['project_id']);
+        $hour = now()->hour;
+        $shift = 'Luar Shift'; // Fallback just in case
+
+        if ($project && in_array($project->name, ['Main Dev', 'Sorlim'])) {
+            if ($hour >= 6 && $hour < 16) {
+                $shift = 'Shift Pagi';
+            } else {
+                $shift = 'Shift Malam';
+            }
+        } elseif ($project && $project->name === 'Big Fleet') {
+            if ($hour >= 6 && $hour < 18) {
+                $shift = 'Shift Pagi';
+            } else {
+                $shift = 'Shift Malam';
+            }
+        }
+
+        $validated['shift'] = $shift;
+
         // 2. Insert atomically
         $record = Attendance::create($validated);
 
-        // 3. Update the unique code using the true Database ID (Race-condition free)
-        $todayPrefix = 'FitToWork-TMJ-' . now()->format('dmy');
-        $sequence = str_pad($record->id, 4, '0', STR_PAD_LEFT);
+        // 3. Update the unique code using a daily sequence counter (Race-condition free)
+        $todayPrefix = 'FitToWork-TMJ-' . $record->created_at->format('dmy');
+        $startOfDay = $record->created_at->copy()->startOfDay();
+        
+        $dailySequence = Attendance::where('created_at', '>=', $startOfDay)
+                                   ->where('id', '<=', $record->id)
+                                   ->count();
+                                   
+        $sequence = str_pad($dailySequence, 4, '0', STR_PAD_LEFT);
         $finalCode = $todayPrefix . '-' . $sequence;
 
         $record->update(['attendance_code' => $finalCode]);

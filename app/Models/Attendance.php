@@ -19,6 +19,7 @@ class Attendance extends Model
         'temperature',
         'tak',
         'fit_status',
+        'shift',
     ];
 
     public function employee()

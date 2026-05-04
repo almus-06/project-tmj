@@ -2,93 +2,246 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom TMJ Vanilla CSS */
-body {
-    background-color: #f3f4f6;
-    font-family: 'Inter', sans-serif;
+/* ══════════════════════════════════════════════════════════════ */
+/*  TMJ OPERATIONS SYSTEM — Design Tokens (Indigo-Violet Theme) */
+/* ══════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ── Brand Palette ── */
+    --tmj-primary:      #6366F1;  /* Indigo 500 */
+    --tmj-primary-dark:  #4F46E5;  /* Indigo 600 */
+    --tmj-primary-light: #818CF8;  /* Indigo 400 */
+    --tmj-accent:        #8B5CF6;  /* Violet 500 */
+    --tmj-accent-dark:   #7C3AED;  /* Violet 600 */
+
+    /* ── Operational Status (intentionally preserved) ── */
+    --tmj-green:  #059669;  /* Emerald 600 — Hadir / Ready */
+    --tmj-amber:  #D97706;  /* Amber 600   — Unfit / Standby */
+    --tmj-red:    #DC2626;  /* Red 600     — Alpha / Down */
+    --tmj-blue:   #4F46E5;  /* Indigo 600  — Cuti / Izin */
+
+    /* ── Surface & Text ── */
+    --tmj-surface:      #F8FAFC;  /* Slate 50 */
+    --tmj-surface-alt:  #F1F5F9;  /* Slate 100 */
+    --tmj-border:       #E2E8F0;  /* Slate 200 */
+    --tmj-text:         #0F172A;  /* Slate 900 */
+    --tmj-text-muted:   #64748B;  /* Slate 500 */
+    --tmj-text-subtle:  #94A3B8;  /* Slate 400 */
 }
+
+
+/* ══════════════════════════════════════════ */
+/*  BASE STYLES                               */
+/* ══════════════════════════════════════════ */
+
+body {
+    background-color: var(--tmj-surface);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--tmj-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ══════════════════════════════════════════ */
+/*  MOBILE FORM CONTAINER                     */
+/* ══════════════════════════════════════════ */
 
 .tmj-container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
     background: white;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     min-height: 100vh;
 }
+
+
+/* ══════════════════════════════════════════ */
+/*  BUTTON SYSTEM                             */
+/* ══════════════════════════════════════════ */
 
 .tmj-btn {
     display: block;
     width: 100%;
     padding: 16px;
     font-size: 1.125rem;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
     cursor: pointer;
     margin-top: 20px;
     color: white;
+    transition: all 0.2s ease;
+    letter-spacing: 0.025em;
 }
 
-.tmj-btn-primary { background-color: #2563eb; }
-.tmj-btn-success { background-color: #16a34a; }
+.tmj-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.tmj-btn:active {
+    transform: translateY(0);
+}
+
+.tmj-btn-primary {
+    background: linear-gradient(135deg, var(--tmj-primary), var(--tmj-accent));
+}
+
+.tmj-btn-success {
+    background: linear-gradient(135deg, #059669, #10B981);
+}
+
+
+/* ══════════════════════════════════════════ */
+/*  FORM INPUTS                               */
+/* ══════════════════════════════════════════ */
 
 .tmj-input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid var(--tmj-border);
+    border-radius: 8px;
     font-size: 1rem;
     margin-top: 8px;
     margin-bottom: 16px;
     box-sizing: border-box;
+    background: var(--tmj-surface);
+    color: var(--tmj-text);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tmj-input:focus {
+    outline: none;
+    border-color: var(--tmj-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .tmj-label {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.95rem;
-    color: #374151;
+    color: var(--tmj-text);
 }
 
-/* Industrial Design System Tokens */
-:root {
-    --tmj-green: #16a34a;
-    --tmj-amber: #d97706;
-    --tmj-red: #dc2626;
-    --tmj-slate: #475569;
+
+/* ══════════════════════════════════════════ */
+/*  ADMIN CARD SYSTEM                         */
+/* ══════════════════════════════════════════ */
+
+.card-industrial {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--tmj-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
 }
 
-/* Indicators */
-.indicator-green { background-color: var(--tmj-green) !important; color: white !important; }
-.indicator-red { background-color: var(--tmj-red) !important; color: white !important; }
-.indicator-yellow { background-color: var(--tmj-amber) !important; color: white !important; }
+.card-industrial:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+}
 
-/* Theme Color Utilities */
+
+/* ══════════════════════════════════════════ */
+/*  STATUS INDICATORS                         */
+/* ══════════════════════════════════════════ */
+
+/* Solid badges for admin dashboard cards */
+.indicator-green  { background-color: var(--tmj-green) !important; color: white !important; }
+.indicator-amber  { background-color: var(--tmj-amber) !important; color: white !important; }
+.indicator-red    { background-color: var(--tmj-red) !important; color: white !important; }
+
+/* Text color utilities */
 .tmj-text-green { color: var(--tmj-green); }
 .tmj-text-amber { color: var(--tmj-amber); }
-.tmj-text-red { color: var(--tmj-red); }
+.tmj-text-red   { color: var(--tmj-red); }
+.tmj-text-blue  { color: var(--tmj-blue); }
 
+/* Border color utilities */
 .tmj-border-green { border-color: var(--tmj-green); }
 .tmj-border-amber { border-color: var(--tmj-amber); }
-.tmj-border-red { border-color: var(--tmj-red); }
+.tmj-border-red   { border-color: var(--tmj-red); }
+.tmj-border-blue  { border-color: var(--tmj-blue); }
 
-/* Pulse animation for real-time vibe */
+
+/* ══════════════════════════════════════════ */
+/*  STATUS CHIPS (Table Badges)               */
+/* ══════════════════════════════════════════ */
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+/* Attendance Chips */
+.badge-hadir   { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+.badge-izin    { background: #E0F2FE; color: #0284C7; border-color: #BAE6FD; }
+.badge-absent  { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+.badge-fit     { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+.badge-unfit   { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+
+/* Fleet Chips */
+.badge-ready   { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+.badge-standby { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+.badge-down    { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+
+
+/* ══════════════════════════════════════════ */
+/*  AVATAR                                    */
+/* ══════════════════════════════════════════ */
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 10px;
+}
+
+
+/* ══════════════════════════════════════════ */
+/*  ANIMATIONS                                */
+/* ══════════════════════════════════════════ */
+
 .animate-pulse-slow {
     animation: pulselight 3s infinite;
 }
 
 @keyframes pulselight {
-    0% { opacity: 1; }
-    50% { opacity: 0.8; }
+    0%   { opacity: 1; }
+    50%  { opacity: 0.75; }
     100% { opacity: 1; }
 }
 
+/* Subtle glow for live status indicators */
+@keyframes glow-indigo {
+    0%   { box-shadow: 0 0 4px rgba(99, 102, 241, 0.4); }
+    50%  { box-shadow: 0 0 12px rgba(99, 102, 241, 0.2); }
+    100% { box-shadow: 0 0 4px rgba(99, 102, 241, 0.4); }
+}
+
+.animate-glow {
+    animation: glow-indigo 2s ease-in-out infinite;
+}
+
+
 /* ══════════════════════════════════════════ */
-/* CUSTOM PREMIUM SCROLLBAR                   */
+/*  PREMIUM SCROLLBAR                         */
 /* ══════════════════════════════════════════ */
 
-/* Global Scrollbar */
+/* Global Scrollbar (Webkit) */
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -99,30 +252,56 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #CBD5E1; /* Slate 300 */
+    background: #C7D2FE; /* Indigo 200 */
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8; /* Slate 400 */
+    background: #A5B4FC; /* Indigo 300 */
 }
 
 /* Firefox Support */
 * {
     scrollbar-width: thin;
-    scrollbar-color: #CBD5E1 transparent;
+    scrollbar-color: #C7D2FE transparent;
 }
 
-/* Extra smooth scrollbar for dropdowns/search results */
+/* Dropdown/Panel Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(99, 102, 241, 0.15);
     border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(99, 102, 241, 0.25);
+}
+
+
+/* ══════════════════════════════════════════ */
+/*  CUSTOM DATE INPUT                         */
+/* ══════════════════════════════════════════ */
+
+/* Hide native calendar icon for custom icon override */
+.date-input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.date-input {
+    font-variant-numeric: tabular-nums;
+    color-scheme: light;
+}
+
+/* Empty state placeholder color */
+.date-input:not(:valid),
+.date-input[value=""] {
+    color: var(--tmj-text-subtle);
 }
