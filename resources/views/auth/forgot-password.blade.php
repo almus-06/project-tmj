@@ -58,6 +58,13 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 640px) {
+            .main-container { padding: 1rem; }
+            .recovery-card { padding: 2.5rem 1.5rem; border-radius: 20px; }
+            .input-field { font-size: 16px !important; }
+        }
     </style>
 </head>
 

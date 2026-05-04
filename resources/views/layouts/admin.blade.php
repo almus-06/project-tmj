@@ -74,21 +74,33 @@
 <body class="min-h-screen">
 
     {{-- Top Navigation --}}
-    <nav style="background: #fff; border-bottom: 1px solid #E2E8F0;" class="shadow-sm sticky top-0 z-50">
+    <nav style="background: #fff; border-bottom: 1px solid #E2E8F0;" class="shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-14">
-                {{-- Logo --}}
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm" style="background: linear-gradient(135deg, #1D4ED8, #2563EB);">
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                
+                {{-- Left Side: Logo & Menu Toggle --}}
+                <div class="flex items-center gap-4">
+                    {{-- Mobile Hamburger --}}
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 sm:hidden">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path :class="{'hidden': mobileMenuOpen, 'inline-flex': !mobileMenuOpen }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <path :class="{'hidden': !mobileMenuOpen, 'inline-flex': mobileMenuOpen }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
+                    </button>
+
+                    {{-- Logo --}}
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm" style="background: linear-gradient(135deg, #1D4ED8, #2563EB);">
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <span class="font-bold text-slate-800" style="font-size: 0.95rem; letter-spacing: -0.01em;">TMJ <span class="text-blue-600">Admin</span></span>
                     </div>
-                    <span class="font-bold text-slate-800" style="font-size: 0.95rem; letter-spacing: -0.01em;">TMJ <span class="text-blue-600">Admin</span></span>
                 </div>
 
-                {{-- Nav Links --}}
-                <div class="flex items-center gap-6">
+                {{-- Desktop Nav Links --}}
+                <div class="hidden sm:flex items-center gap-6">
                     <a href="{{ route('operations.dashboard') }}"
                        class="nav-link {{ request()->routeIs('operations.dashboard') ? 'active' : '' }}">
                         Beranda
@@ -113,7 +125,7 @@
                         <div class="avatar" style="background: #DBEAFE; color: #1D4ED8;">
                             {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
-                        <span class="text-sm font-semibold text-slate-700 hidden sm:block">{{ Auth::user()->name }}</span>
+                        <span class="text-sm font-semibold text-slate-700 hidden md:block">{{ Auth::user()->name }}</span>
                     </div>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
@@ -124,10 +136,30 @@
                 </div>
             </div>
         </div>
+
+        {{-- Mobile Menu Dropdown --}}
+        <div x-show="mobileMenuOpen" class="sm:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-2" x-transition>
+            <a href="{{ route('operations.dashboard') }}"
+               class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('operations.dashboard') ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                Beranda
+            </a>
+            @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
+            <a href="{{ route('workforce.attendance') }}"
+               class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('workforce.attendance') ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                Absensi
+            </a>
+            @endif
+            @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
+            <a href="{{ route('fleet.management') }}"
+               class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('fleet.management') ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                Armada
+            </a>
+            @endif
+        </div>
     </nav>
 
     {{-- Main Content --}}
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-x-hidden">
         @yield('content')
     </main>
 

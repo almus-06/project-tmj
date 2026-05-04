@@ -82,27 +82,27 @@
     @php
         $navCols = in_array(Auth::user()->role, ['admin', 'supervisor']) ? 'md:grid-cols-2' : 'md:grid-cols-1';
     @endphp
-    <div class="grid grid-cols-1 {{ $navCols }} gap-5">
+    <div class="grid grid-cols-1 {{ $navCols }} gap-4 sm:gap-5">
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
         <a href="{{ route('workforce.attendance') }}"
-           class="card-industrial p-6 flex items-center gap-5 hover:border-blue-300 transition-all group overflow-hidden relative">
-            <div class="absolute right-0 bottom-0 p-4 opacity-5 translate-y-4 translate-x-4 group-hover:translate-y-0 group-hover:translate-x-0 transition-transform">
+           class="card-industrial p-4 sm:p-6 flex items-center gap-4 sm:gap-5 hover:border-blue-300 transition-all group overflow-hidden relative">
+            <div class="absolute right-0 bottom-0 p-4 opacity-5 translate-y-4 translate-x-4 group-hover:translate-y-0 group-hover:translate-x-0 transition-transform hidden sm:block">
                 <svg class="w-32 h-32 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
-            <div class="w-16 h-16 rounded-xl flex items-center justify-center bg-slate-900 text-white flex-shrink-0 transition-transform group-hover:scale-110">
-                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center bg-slate-900 text-white flex-shrink-0 transition-transform group-hover:scale-110">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
             <div class="flex-1 relative z-10">
-                <p class="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Modul: Personalia</p>
-                <p class="text-lg font-black text-slate-900">Dinamika Tenaga Kerja</p>
-                <p class="text-xs text-slate-500 font-medium mt-1">Pantau kesehatan & log kehadiran personel</p>
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-0.5">Modul: Personalia</p>
+                <p class="text-base sm:text-lg font-black text-slate-900">Dinamika Tenaga Kerja</p>
+                <p class="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">Pantau kesehatan & log kehadiran</p>
             </div>
-            <div class="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
             </div>
@@ -111,25 +111,25 @@
 
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
         <a href="{{ route('fleet.management') }}"
-           class="card-industrial p-6 flex items-center gap-5 hover:border-blue-300 transition-all group overflow-hidden relative">
-            <div class="absolute right-0 bottom-0 p-4 opacity-5 translate-y-4 translate-x-4 group-hover:translate-y-0 group-hover:translate-x-0 transition-transform">
+           class="card-industrial p-4 sm:p-6 flex items-center gap-4 sm:gap-5 hover:border-blue-300 transition-all group overflow-hidden relative">
+            <div class="absolute right-0 bottom-0 p-4 opacity-5 translate-y-4 translate-x-4 group-hover:translate-y-0 group-hover:translate-x-0 transition-transform hidden sm:block">
                 <svg class="w-32 h-32 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z"/>
                 </svg>
             </div>
-            <div class="w-16 h-16 rounded-xl flex items-center justify-center bg-slate-900 text-white flex-shrink-0 transition-transform group-hover:scale-110">
-                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center bg-slate-900 text-white flex-shrink-0 transition-transform group-hover:scale-110">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z"/>
                 </svg>
             </div>
             <div class="flex-1 relative z-10">
-                <p class="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Modul: Aset</p>
-                <p class="text-lg font-black text-slate-900">Intelijen Armada</p>
-                <p class="text-xs text-slate-500 font-medium mt-1">Status unit & pelacakan pemeliharaan real-time</p>
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-0.5">Modul: Aset</p>
+                <p class="text-base sm:text-lg font-black text-slate-900">Intelijen Armada</p>
+                <p class="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">Status unit & pelacakan pemeliharaan</p>
             </div>
-            <div class="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
             </div>

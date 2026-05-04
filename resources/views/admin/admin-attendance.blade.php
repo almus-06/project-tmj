@@ -76,38 +76,33 @@
 
     {{-- Filter Bar --}}
     <div class="card-industrial p-4 mb-6">
-        <form method="GET" action="{{ route('workforce.attendance') }}" class="flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[160px]">
+        <form method="GET" action="{{ route('workforce.attendance') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
                     class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
             </div>
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Status
-                    Kehadiran</label>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Status Kehadiran</label>
                 <div class="relative">
                     <select name="status"
                         class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition pr-9">
                         <option value="">Semua Status</option>
                         <option value="Hadir" {{ request('status') == 'Hadir' ? 'selected' : '' }}>Hadir</option>
-                        <option value="Tidak Hadir" {{ request('status') == 'Tidak Hadir' ? 'selected' : '' }}>Tidak Hadir
-                        </option>
+                        <option value="Tidak Hadir" {{ request('status') == 'Tidak Hadir' ? 'selected' : '' }}>Tidak Hadir</option>
                         <option value="Izin" {{ request('status') == 'Izin' ? 'selected' : '' }}>Izin</option>
                         <option value="Cuti" {{ request('status') == 'Cuti' ? 'selected' : '' }}>Cuti</option>
-                        <option value="Tanpa Keterangan" {{ request('status') == 'Tanpa Keterangan' ? 'selected' : '' }}>Tanpa
-                            Keterangan</option>
+                        <option value="Tanpa Keterangan" {{ request('status') == 'Tanpa Keterangan' ? 'selected' : '' }}>Tanpa Keterangan</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
                 </div>
             </div>
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Area
-                    Project</label>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Area Project</label>
                 <div class="relative">
                     <select name="project"
                         class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition pr-9">
@@ -117,8 +112,7 @@
                         <option value="Big Fleet" {{ request('project') == 'Big Fleet' ? 'selected' : '' }}>Big Fleet</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
@@ -126,10 +120,9 @@
             </div>
             <div class="flex gap-2">
                 <button type="submit"
-                    class="bg-blue-600 text-white text-xs font-black px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm">TERAPKAN
-                    FILTER</button>
+                    class="flex-1 bg-blue-600 text-white text-[10px] font-black px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm">TERAPKAN</button>
                 <a href="{{ route('workforce.attendance') }}"
-                    class="bg-white text-slate-600 text-xs font-bold px-6 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">HAPUS</a>
+                    class="flex-1 bg-white text-slate-600 text-[10px] text-center font-bold px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">HAPUS</a>
             </div>
         </form>
     </div>

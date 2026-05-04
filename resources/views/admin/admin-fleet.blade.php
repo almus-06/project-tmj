@@ -78,13 +78,13 @@
 
     {{-- Filter Bar --}}
     <div class="card-industrial p-4 mb-6">
-        <form method="GET" action="{{ route('fleet.management') }}" class="flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[160px]">
+        <form method="GET" action="{{ route('fleet.management') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Periode Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
                     class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
             </div>
-            <div class="flex-1 min-w-[160px]">
+            <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Status Unit</label>
                 <div class="relative">
                     <select name="status" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition pr-9">
@@ -98,7 +98,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex-1 min-w-[160px]">
+            <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Area Project</label>
                 <div class="relative">
                     <select name="project" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition pr-9">
@@ -113,8 +113,8 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white text-xs font-black px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm">TERAPKAN FILTER</button>
-                <a href="{{ route('fleet.management') }}" class="bg-white text-slate-600 text-xs font-bold px-6 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">HAPUS</a>
+                <button type="submit" class="flex-1 bg-blue-600 text-white text-[10px] font-black px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm">TERAPKAN</button>
+                <a href="{{ route('fleet.management') }}" class="flex-1 bg-white text-slate-600 text-[10px] text-center font-bold px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">HAPUS</a>
             </div>
         </form>
     </div>
@@ -173,8 +173,16 @@
                                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{{ $row->project->name ?? '—' }} • {{ $row->location }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-right tabular-nums">
-                                    <p class="text-sm font-black text-slate-800">{{ number_format($row->hm, 1) }} <span class="text-[10px] text-slate-400 font-bold">HM</span></p>
-                                    <p class="text-xs font-bold text-slate-400">{{ number_format($row->km, 1) }} <span class="text-[10px] text-slate-400">KM</span></p>
+                                    @php
+                                        $jenis = strtoupper($row->unit->jenis_alat ?? '');
+                                        $isHM = Str::contains($jenis, ['EXCAVATOR', 'DOZER', 'COMPACTOR', 'GRADER', 'LOADER']);
+                                    @endphp
+                                    
+                                    @if($isHM)
+                                        <p class="text-sm font-black text-slate-800">{{ number_format($row->hm, 1) }} <span class="text-[10px] text-slate-400 font-bold">HM</span></p>
+                                    @else
+                                        <p class="text-sm font-black text-slate-800">{{ number_format($row->km, 1) }} <span class="text-[10px] text-slate-400 font-bold">KM</span></p>
+                                    @endif
                                 </td>
                             </tr>
                             
@@ -213,7 +221,11 @@
                                                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{{ $log->status }} • {{ optional($log->project)->name ?? '—' }}</p>
                                                             </div>
                                                             <div class="text-right tabular-nums">
-                                                                <p class="text-xs font-black text-slate-700">{{ number_format($log->hm, 1) }} HM</p>
+                                                                @if($isHM)
+                                                                    <p class="text-xs font-black text-slate-700">{{ number_format($log->hm, 1) }} HM</p>
+                                                                @else
+                                                                    <p class="text-xs font-black text-slate-700">{{ number_format($log->km, 1) }} KM</p>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                         @if($log->damage_type)

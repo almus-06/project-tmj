@@ -99,6 +99,22 @@
         .btn-industrial:active {
             transform: translateY(0);
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 640px) {
+            .main-container { padding: 1rem; }
+            .login-side { padding: 2.5rem 1.5rem; }
+            .login-wrapper { border-radius: 20px; }
+            .input-field { font-size: 16px !important; } /* Prevent iOS zoom */
+        }
+
+        .mobile-logo {
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            .mobile-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 2rem; }
+        }
     </style>
 </head>
 
@@ -133,7 +149,17 @@
 
             {{-- Login Form Side --}}
             <div class="login-side">
-                <div class="mb-10">
+                {{-- Mobile Only Logo Header --}}
+                <div class="mobile-logo">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="font-black text-slate-800 tracking-tight text-xl">TMJ <span class="text-blue-600">SYSTEM</span></span>
+                </div>
+
+                <div class="mb-10 text-center sm:text-left">
                     <h2 class="text-2xl font-black text-slate-900 tracking-tight uppercase">Otentikasi User</h2>
                     <p class="text-slate-500 text-sm font-medium mt-1">Silakan masuk untuk akses kontrol penuh.</p>
                 </div>

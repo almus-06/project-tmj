@@ -28,9 +28,11 @@ class FleetController extends Controller
         $isLocked = false;
 
         if ($qr_code) {
-            $unit = Unit::where('qr_code_string', $qr_code)
-                ->orWhere('no_kendaraan', $qr_code)
-                ->orWhere('ct', $qr_code)
+            $cleanQrCode = str_replace(' ', '', $qr_code);
+
+            $unit = Unit::whereRaw("REPLACE(qr_code_string, ' ', '') = ?", [$cleanQrCode])
+                ->orWhereRaw("REPLACE(no_kendaraan, ' ', '') = ?", [$cleanQrCode])
+                ->orWhereRaw("REPLACE(ct, ' ', '') = ?", [$cleanQrCode])
                 ->first();
             
             if ($unit) {

@@ -43,10 +43,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'workshop'
         ]);
 
-        \App\Models\Employee::create(['name' => 'Ali Mussa Tangke Danga', 'position' => 'Magang']);
-        \App\Models\Employee::create(['name' => 'Nikita Maretia', 'position' => 'Magang']);
-        \App\Models\Employee::create(['name' => 'Suci Rahmadhani Z', 'position' => 'Magang']);
-
-
+        // Import Master Data from SQL
+        $this->call(SqlDataSeeder::class);
     }
 }
