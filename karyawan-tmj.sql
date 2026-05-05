@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE employees;
 INSERT INTO employees (name, position, created_at, updated_at) VALUES
 ('HANIFAH','ADMIN KEUANGAN',NOW(),NOW()),
 ('RAMLI MUH. JONO SANUSI','PJO',NOW(),NOW()),
@@ -196,3 +198,5 @@ INSERT INTO employees (name, position, created_at, updated_at) VALUES
 ('MUHAMMAD RIZAL','OPERATOR GRADER',NOW(),NOW()),
 ('ERY WIRANANDA','SAFETYMAN',NOW(),NOW()),
 ('ANDARIAS SAMPE','OPERATOR LOADER',NOW(),NOW());
+
+SET FOREIGN_KEY_CHECKS = 1;
