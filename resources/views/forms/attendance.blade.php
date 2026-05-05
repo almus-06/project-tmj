@@ -1,6 +1,6 @@
 @extends('layouts.mobile')
 
-@section('title', 'Fit To Work')
+@section('title', 'Attendance - TMJ')
 
 @section('header')
 {{-- ═══ INDUSTRIAL HEADER CARD ═══════════════════════════════════════════ --}}
@@ -17,12 +17,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
             </div>
-            <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.75);">Fit To Work</span>
+            <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.75);">Absensi</span>
         </div>
 
         {{-- Title block --}}
-        <h1 class="text-3xl font-black text-white tracking-tighter leading-tight mb-1 uppercase">Fit To Work</h1>
-        <p class="text-[10px] font-black uppercase tracking-[0.2em]" style="color: rgba(255,255,255,0.5);">PT. TRI MACHMUD JAYA &mdash; Operations Module</p>
+        <h1 class="text-3xl font-black text-white tracking-tighter leading-tight mb-1 uppercase">Absensi Karyawan</h1>
+        <p class="text-[10px] font-black uppercase tracking-[0.2em]" style="color: rgba(255,255,255,0.5);">PT. TRI MACHMUD JAYA</p>
 
         {{-- Attendance Code + Date --}}
         <div class="mt-4 flex items-center gap-3">
@@ -300,7 +300,7 @@
             </button>
             <div>
                 <p class="font-black text-slate-700 uppercase tracking-widest" style="font-size:0.75rem;">TAK STATUS</p>
-                <p class="text-slate-400 font-bold uppercase tracking-tight" style="font-size:0.65rem;">No medical abnormality</p>
+                <p class="text-slate-400 font-bold uppercase tracking-tight" style="font-size:0.65rem;">Tidak Ada Kelainan Medis</p>
             </div>
         </div>
 
@@ -318,7 +318,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-black" id="fit_label" style="color: #16A34A;">FIT</p>
-                        <p class="text-xs font-medium" id="fit_sub" style="color: #86EFAC;">Layak Bekerja</p>
+                        <p class="text-xs font-medium" id="fit_sub" style="color: #86EFAC;">Sehat</p>
                     </div>
                 </button>
                 <button type="button" onclick="selectFit('Unfit')" id="btn_unfit"
@@ -330,7 +330,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-black" id="unfit_label" style="color: #94A3B8;">UNFIT</p>
-                        <p class="text-xs font-medium" id="unfit_sub" style="color: #CBD5E1;">Tidak Layak</p>
+                        <p class="text-xs font-medium" id="unfit_sub" style="color: #CBD5E1;">Tidak Sehat</p>
                     </div>
                 </button>
             </div>
@@ -381,7 +381,7 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v5m0 0l-2-2m2 2l2-2M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
         </svg>
-        REGISTER ATTENDANCE
+        MASUKAN ABSENSI
     </button>
 </div>
 
