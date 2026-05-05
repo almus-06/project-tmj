@@ -15,7 +15,7 @@
         </div>
         <div class="flex items-center gap-3">
             <a href="{{ route('fleet.management', ['export' => 'csv'] + request()->all()) }}"
-               class="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+               class="inline-flex items-center gap-2 bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition-all shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
@@ -33,10 +33,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-1">ARMADA: TOTAL</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-1">total unit</p>
             <p class="text-4xl font-black text-slate-900 tabular-nums">{{ $totalUnits }}</p>
             <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Aset Terdaftar' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'unit Terdaftar' }}
             </p>
         </div>
 
@@ -48,7 +48,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l9 1m1-11h4l3 5v4h-7V5z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">ARMADA: READY</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">unit READY</p>
             <p class="text-4xl font-black text-green-600 tabular-nums">{{ $readyCount }}</p>
             <p class="text-[10px] text-green-400 font-bold mt-2 uppercase">
                 {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Unit Siap Operasi' }}
@@ -62,10 +62,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">ARMADA: STANDBY</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">unit STANDBY</p>
             <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $standbyCount }}</p>
             <p class="text-[10px] text-amber-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Unit Menunggu Antrian' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Unit tinggal' }}
             </p>
         </div>
 
@@ -76,10 +76,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1">ARMADA: DOWN</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1">unit DOWN</p>
             <p class="text-4xl font-black text-red-600 tabular-nums">{{ $downCount }}</p>
             <p class="text-[10px] text-red-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Unit di Workshop' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') || request()->filled('status') ? 'Berdasarkan Filter' : 'Unit butuh maintenance' }}
             </p>
         </div>
     </div>
@@ -508,8 +508,10 @@
 
     @push('scripts')
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const ctx = document.getElementById('projectChart').getContext('2d');
+    (function() {
+        const canvas = document.getElementById('projectChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -550,7 +552,7 @@
                 }
             }
         });
-    });
+    })();
     </script>
     @endpush
 

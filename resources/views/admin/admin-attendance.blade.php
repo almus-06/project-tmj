@@ -14,7 +14,7 @@
             </p>
         </div>
         <a href="{{ route('workforce.attendance', ['export' => 'csv'] + request()->all()) }}"
-            class="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+            class="inline-flex items-center gap-2 bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition-all shadow-sm">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -32,10 +32,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">PRESENSI: HADIR</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Fit To Work</p>
             <p class="text-4xl font-black text-green-600 tabular-nums">{{ $hadirCount }}</p>
             <p class="text-[10px] text-green-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Karyawan Aktif Hari Ini' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Sehat' }}
             </p>
         </div>
 
@@ -46,10 +46,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">KESEHATAN: UNFIT</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Unfit</p>
             <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $unfitCount }}</p>
             <p class="text-[10px] text-amber-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Perlu Tindak Lanjut' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Kurang Sehat' }}
             </p>
         </div>
 
@@ -57,13 +57,13 @@
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-sky-500">
             <div class="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002-2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-1">STATUS: CUTI / IZIN</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-1">CUTI / IZIN</p>
             <p class="text-4xl font-black text-sky-600 tabular-nums">{{ $leaveCount }}</p>
             <p class="text-[10px] text-sky-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Karyawan Tidak Bertugas' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Tidak Bertugas' }}
             </p>
         </div>
 
@@ -74,10 +74,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1">PRESENSI: ALPHA</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1">Tanpa Keterangan</p>
             <p class="text-4xl font-black text-red-600 tabular-nums">{{ $alphaCount }}</p>
             <p class="text-[10px] text-red-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Tanpa Keterangan Hari Ini' }}
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Tidak Hadir' }}
             </p>
         </div>
     </div>

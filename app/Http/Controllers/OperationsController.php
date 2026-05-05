@@ -51,29 +51,31 @@ class OperationsController extends Controller
         $attendances = $query->paginate(35)->withQueryString();
 
         // Stats version Karyawan (Filtered Summary)
-        $statsQuery = Attendance::query();
+        // We use a base query that reflects date and project filters, but NOT the status filter
+        $statsBase = Attendance::query();
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $statsQuery->whereBetween('created_at', [
+            $statsBase->whereBetween('created_at', [
                 $request->start_date . ' 00:00:00',
                 $request->end_date . ' 23:59:59'
             ]);
         } elseif ($request->filled('start_date')) {
-            $statsQuery->whereDate('created_at', '>=', $request->start_date);
+            $statsBase->whereDate('created_at', '>=', $request->start_date);
         } elseif ($request->filled('end_date')) {
-            $statsQuery->whereDate('created_at', '<=', $request->end_date);
-        } elseif (!$request->filled('start_date') && !$request->filled('end_date')) {
-            // Default to today if no date filter is applied to keep summary relevant
-            $statsQuery->whereDate('created_at', now()->toDateString());
+            $statsBase->whereDate('created_at', '<=', $request->end_date);
+        } elseif (!$request->filled('start_date') && !$request->filled('end_date') && !$request->filled('project')) {
+            // Default to today for summary cards only if NO filters are applied
+            // If a project is selected but no date, show all-time for that project to match table
+            $statsBase->whereDate('created_at', now()->toDateString());
         }
 
         if ($request->filled('project')) {
-            $statsQuery->whereHas('project', fn($q) => $q->where('name', $request->project));
+            $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
         }
 
-        $hadirCount = $statsQuery->clone()->where('presence_status', 'Hadir')->count();
-        $unfitCount = $statsQuery->clone()->where('fit_status', 'Unfit')->count();
-        $leaveCount = $statsQuery->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
-        $alphaCount = $statsQuery->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
+        $hadirCount = $statsBase->clone()->where('presence_status', 'Hadir')->count();
+        $unfitCount = $statsBase->clone()->where('fit_status', 'Unfit')->count();
+        $leaveCount = $statsBase->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
+        $alphaCount = $statsBase->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
 
         return view('admin.admin-attendance', compact('attendances', 'hadirCount', 'unfitCount', 'leaveCount', 'alphaCount'));
     }
@@ -105,26 +107,27 @@ class OperationsController extends Controller
         $unitStatuses = $query->paginate(35)->withQueryString();
 
         // Stats version Fleet (Filtered Summary)
-        $statsQuery = UnitStatus::with('project')->whereIn('id', function ($q) {
+        // Match the same logic as the table: latest status per unit, filtered by project/date
+        $statsBase = UnitStatus::whereIn('id', function ($q) {
             $q->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
         });
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $statsQuery->whereBetween('created_at', [
+            $statsBase->whereBetween('created_at', [
                 $request->start_date . ' 00:00:00',
                 $request->end_date . ' 23:59:59'
             ]);
         } elseif ($request->filled('start_date')) {
-            $statsQuery->whereDate('created_at', '>=', $request->start_date);
+            $statsBase->whereDate('created_at', '>=', $request->start_date);
         } elseif ($request->filled('end_date')) {
-            $statsQuery->whereDate('created_at', '<=', $request->end_date);
+            $statsBase->whereDate('created_at', '<=', $request->end_date);
         }
 
         if ($request->filled('project')) {
-            $statsQuery->whereHas('project', fn($q) => $q->where('name', $request->project));
+            $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
         }
 
-        $filteredUnits = $statsQuery->get();
+        $filteredUnits = $statsBase->get();
 
         $totalUnits = $filteredUnits->count();
         $readyCount = $filteredUnits->where('status', 'Ready')->count();
