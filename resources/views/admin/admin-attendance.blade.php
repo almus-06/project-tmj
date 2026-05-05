@@ -7,10 +7,10 @@
     {{-- Page Header --}}
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dinamika Tenaga Kerja</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Safety Number 01</h1>
             <p class="text-sm text-slate-500 font-medium mt-1 flex items-center gap-2">
                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                Manajemen kehadiran dan Fit To Work (FTW) karyawan
+                Manajemen kehadiran dan Fit To Work karyawan
             </p>
         </div>
         <a href="{{ route('workforce.attendance', ['export' => 'csv'] + request()->all()) }}"

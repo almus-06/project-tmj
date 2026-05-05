@@ -12,11 +12,14 @@
 
         <div class="relative px-5 pt-8 pb-7">
             {{-- Top row: label + LIVE badge --}}
-            <div class="flex items-center gap-3 mb-4">
-                <div class="flex items-center justify-center">
-                    <img src="{{ asset('images/logo-tmj.png') }}" alt="Logo" class="h-10 w-auto object-contain">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="p-1.5 bg-white rounded-lg shadow-md border border-white/20">
+                    <img src="{{ asset('images/logo-tmj-full.png') }}" alt="Logo" class="h-8 w-auto object-contain">
                 </div>
-                <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.75);">Unit</span>
+                <div>
+                    <span class="block text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200/60">Portal</span>
+                    <span class="block text-sm font-black uppercase tracking-widest text-white leading-none">Unit</span>
+                </div>
             </div>
 
             {{-- Title block --}}
@@ -42,30 +45,30 @@
 
 @section('content')
     <form action="{{ route('fleet.store') }}" method="POST" id="unitForm" x-data="{
-                        telemetryType: '', 
+                            telemetryType: '', 
 
-                        getTelemetry(jenis) {
-                            if (!jenis) return '';
-                            const j = jenis.toLowerCase();
-                            const kmList = ['wt', 'dt', 'dw', 'fuel truck', 'bus', 'low boy', 'lv'];
-                            const hmList = ['exca', 'grader', 'compactor', 'dozer'];
+                            getTelemetry(jenis) {
+                                if (!jenis) return '';
+                                const j = jenis.toLowerCase();
+                                const kmList = ['wt', 'dt', 'dw', 'fuel truck', 'bus', 'low boy', 'lv'];
+                                const hmList = ['exca', 'grader', 'compactor', 'dozer'];
 
-                            if (kmList.some(k => j.includes(k))) return 'km';
-                            if (hmList.some(h => j.includes(h))) return 'hm';
-                            return 'km';
-                        },
+                                if (kmList.some(k => j.includes(k))) return 'km';
+                                if (hmList.some(h => j.includes(h))) return 'hm';
+                                return 'km';
+                            },
 
-                        init() {
-                            @if($selectedUnitId || old('unit_id'))
-                                @php
-                                    $initUnit = $units->firstWhere('id', old('unit_id') ?? $selectedUnitId);
-                                @endphp
-                                @if($initUnit)
-                                    this.telemetryType = this.getTelemetry('{{ $initUnit->jenis_alat }}');
+                            init() {
+                                @if($selectedUnitId || old('unit_id'))
+                                    @php
+                                        $initUnit = $units->firstWhere('id', old('unit_id') ?? $selectedUnitId);
+                                    @endphp
+                                    @if($initUnit)
+                                        this.telemetryType = this.getTelemetry('{{ $initUnit->jenis_alat }}');
+                                    @endif
                                 @endif
-                            @endif
-                        }
-                    }">
+                            }
+                        }">
         @csrf
 
         @if($errors->any())
@@ -102,26 +105,26 @@
             </p>
 
             <div x-data="{
-                                                                    search: '',
-                                                                    open: false,
-                                                                    isLocked: {{ $isLocked ? 'true' : 'false' }},
-                                                                    selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : 'Pilih Nomor Unit' }}',
-                                                                    selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
-                                                                    units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
+                                                                        search: '',
+                                                                        open: false,
+                                                                        isLocked: {{ $isLocked ? 'true' : 'false' }},
+                                                                        selectedName: '{{ (old('unit_id') ?? $selectedUnitId) ? $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->no_kendaraan . ' — ' . $units->firstWhere('id', old('unit_id') ?? $selectedUnitId)->jenis_alat : 'Pilih Nomor Unit' }}',
+                                                                        selectedId: '{{ old('unit_id') ?? $selectedUnitId ?? '' }}',
+                                                                        units: {{ $units->sortBy('no_kendaraan')->values()->map(function ($u) {
         return ['id' => $u->id, 'name' => $u->no_kendaraan . ' — ' . $u->jenis_alat, 'raw_no' => $u->no_kendaraan, 'jenis' => $u->jenis_alat]; })->toJson() }},
-                                                                    get filteredUnits() {
-                                                                        if (this.search === '') return this.units;
-                                                                        return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
-                                                                    },
-                                                                    selectUnit(u) {
-                                                                        if (this.isLocked) return;
-                                                                        this.selectedId = u.id;
-                                                                        this.selectedName = u.name;
-                                                                        this.search = '';
-                                                                        this.open = false;
-                                                                        this.telemetryType = this.getTelemetry(u.jenis);
-                                                                    }
-                                                                }">
+                                                                        get filteredUnits() {
+                                                                            if (this.search === '') return this.units;
+                                                                            return this.units.filter(u => u.name.toLowerCase().includes(this.search.toLowerCase()));
+                                                                        },
+                                                                        selectUnit(u) {
+                                                                            if (this.isLocked) return;
+                                                                            this.selectedId = u.id;
+                                                                            this.selectedName = u.name;
+                                                                            this.search = '';
+                                                                            this.open = false;
+                                                                            this.telemetryType = this.getTelemetry(u.jenis);
+                                                                        }
+                                                                    }">
                 <label for="unit_search_input" class="field-label">Nomor Unit <span class="text-red-400">*</span></label>
                 <div class="relative" @click.away="open = false; search = ''">
                     {{-- Hidden Real Input --}}
@@ -145,7 +148,7 @@
                         <input type="text" id="unit_search_input"
                             class="form-input-field pl-11 pr-10 cursor-pointer transition-colors"
                             :class="isLocked ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold' : ''"
-                            :placeholder="selectedName" x-model="search" :disabled="isLocked"
+                            :placeholder="selectedName" x-model.debounce.300ms="search" :disabled="isLocked"
                             @click="if(!isLocked){ open = true; }" @keydown.escape="open = false; search = ''"
                             autocomplete="off">
                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
@@ -232,23 +235,23 @@
 
             {{-- Operator Name (Employee) --}}
             <div class="mb-4" x-data="{
-                                search: '',
-                                open: false,
-                                selectedName: '{{ old('operator_id') ? $employees->firstWhere('id', old('operator_id'))->name : 'Pilih Nama Operator' }}',
-                                selectedId: '{{ old('operator_id', '') }}',
-                                employees: {{ $employees->map(function ($emp) {
+                                    search: '',
+                                    open: false,
+                                    selectedName: '{{ old('operator_id') ? $employees->firstWhere('id', old('operator_id'))->name : 'Pilih Nama Operator' }}',
+                                    selectedId: '{{ old('operator_id', '') }}',
+                                    employees: {{ $employees->map(function ($emp) {
         return ['id' => $emp->id, 'name' => $emp->name, 'pos' => $emp->position]; })->toJson() }},
-                                get filteredEmployees() {
-                                    if (this.search === '') return this.employees;
-                                    return this.employees.filter(emp => emp.name.toLowerCase().startsWith(this.search.toLowerCase()));
-                                },
-                                selectEmployee(emp) {
-                                    this.selectedId = emp.id;
-                                    this.selectedName = emp.name;
-                                    this.search = '';
-                                    this.open = false;
-                                }
-                            }">
+                                    get filteredEmployees() {
+                                        if (this.search === '') return this.employees;
+                                        return this.employees.filter(emp => emp.name.toLowerCase().startsWith(this.search.toLowerCase()));
+                                    },
+                                    selectEmployee(emp) {
+                                        this.selectedId = emp.id;
+                                        this.selectedName = emp.name;
+                                        this.search = '';
+                                        this.open = false;
+                                    }
+                                }">
                 <label for="employee_search_input" class="field-label">
                     Nama Operator <span class="text-red-400">*</span>
                 </label>
@@ -266,7 +269,7 @@
                             </svg>
                         </div>
                         <input type="text" id="employee_search_input" class="form-input-field pl-11 pr-10 cursor-pointer"
-                            :placeholder="selectedName" x-model="search" @click="open = true"
+                            :placeholder="selectedName" x-model.debounce.300ms="search" @click="open = true"
                             @keydown.escape="open = false; search = ''" autocomplete="off">
                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                             <button type="button" @click="open = !open" tabindex="-1"
@@ -320,23 +323,23 @@
 
             {{-- Project --}}
             <div x-data="{
-                                search: '',
-                                open: false,
-                                selectedName: '{{ old('project_id') ? $projects->firstWhere('id', old('project_id'))->name : 'Pilih Nama Project' }}',
-                                selectedId: '{{ old('project_id', '') }}',
-                                projects: {{ $projects->map(function ($p) {
+                                    search: '',
+                                    open: false,
+                                    selectedName: '{{ old('project_id') ? $projects->firstWhere('id', old('project_id'))->name : 'Pilih Nama Project' }}',
+                                    selectedId: '{{ old('project_id', '') }}',
+                                    projects: {{ $projects->map(function ($p) {
         return ['id' => $p->id, 'name' => $p->name]; })->toJson() }},
-                                get filteredProjects() {
-                                    if (this.search === '') return this.projects;
-                                    return this.projects.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-                                },
-                                selectProject(p) {
-                                    this.selectedId = p.id;
-                                    this.selectedName = p.name;
-                                    this.search = '';
-                                    this.open = false;
-                                }
-                            }">
+                                    get filteredProjects() {
+                                        if (this.search === '') return this.projects;
+                                        return this.projects.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
+                                    },
+                                    selectProject(p) {
+                                        this.selectedId = p.id;
+                                        this.selectedName = p.name;
+                                        this.search = '';
+                                        this.open = false;
+                                    }
+                                }">
                 <label for="project_search_input" class="field-label">Project <span class="text-red-400">*</span></label>
                 <div class="relative" @click.away="open = false; search = ''">
                     {{-- Hidden Real Input --}}
@@ -353,7 +356,7 @@
                             </svg>
                         </div>
                         <input type="text" id="project_search_input" class="form-input-field pl-11 pr-10 cursor-pointer"
-                            :placeholder="selectedName" x-model="search" @click="open = true"
+                            :placeholder="selectedName" x-model.debounce.300ms="search" @click="open = true"
                             @keydown.escape="open = false; search = ''" autocomplete="off">
                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                             <button type="button" @click="open = !open" tabindex="-1"
@@ -631,14 +634,25 @@
             }
         }
 
-        // ─── Submit Loading ───────────────────────────────────────────────────
-        document.getElementById('unitForm').addEventListener('submit', function () {
+        // ─── Submit Loading & Validation ──────────────────────────────────────
+        document.getElementById('unitForm').addEventListener('submit', function (e) {
+            // Validate Hidden Fields (Dropdowns)
+            const unitId = this.querySelector('input[name="unit_id"]').value;
+            const operatorId = this.querySelector('input[name="operator_id"]').value;
+            const projectId = this.querySelector('input[name="project_id"]').value;
+
+            if (!unitId || !operatorId || !projectId) {
+                e.preventDefault();
+                alert('PERINGATAN: Mohon pastikan Anda telah memilih Nomor Unit, Nama Operator, dan Project dari daftar yang tersedia.');
+                return false;
+            }
+
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = `<svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                                            </svg> Menyimpan...`;
+                                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                                    </svg> Menyimpan...`;
         });
     </script>
 @endsection

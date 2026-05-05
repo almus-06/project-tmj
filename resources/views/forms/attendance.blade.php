@@ -11,11 +11,14 @@
 
     <div class="relative px-5 pt-8 pb-7">
         {{-- Top row: label + LIVE badge --}}
-        <div class="flex items-center gap-3 mb-4">
-            <div class="flex items-center justify-center">
-                <img src="{{ asset('images/logo-tmj.png') }}" alt="Logo" class="h-10 w-auto object-contain">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="p-1.5 bg-white rounded-lg shadow-md border border-white/20">
+                <img src="{{ asset('images/logo-tmj-full.png') }}" alt="Logo" class="h-8 w-auto object-contain">
             </div>
-            <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.75);">Absensi</span>
+            <div>
+                <span class="block text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100/60">Portal</span>
+                <span class="block text-sm font-black uppercase tracking-widest text-white leading-none">Absensi</span>
+            </div>
         </div>
 
         {{-- Title block --}}
@@ -94,7 +97,7 @@
                         id="employee_search_input"
                         class="form-input-field pl-11 pr-10 cursor-pointer"
                         :placeholder="selectedName"
-                        x-model="search"
+                        x-model.debounce.300ms="search"
                         @click="open = true"
                         @keydown.escape="open = false; search = ''"
                         autocomplete="off"
@@ -180,7 +183,7 @@
                         id="project_search_input"
                         class="form-input-field pl-11 pr-10 cursor-pointer"
                         :placeholder="selectedName"
-                        x-model="search"
+                        x-model.debounce.300ms="search"
                         @click="open = true"
                         @keydown.escape="open = false; search = ''"
                         autocomplete="off"
@@ -509,8 +512,18 @@ function checkBP(input) {
     }
 }
 
-// ─── Submit Loading ───────────────────────────────────────────────────
-document.getElementById('attendanceForm').addEventListener('submit', function() {
+// ─── Submit Loading & Validation ──────────────────────────────────────
+document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    // Validate Hidden Fields
+    const employeeId = this.querySelector('input[name="employee_id"]').value;
+    const projectId = this.querySelector('input[name="project_id"]').value;
+
+    if (!employeeId || !projectId) {
+        e.preventDefault();
+        alert('PERINGATAN: Mohon pastikan Anda telah memilih Nama Karyawan dan Project dari daftar yang tersedia.');
+        return false;
+    }
+
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = `<svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
