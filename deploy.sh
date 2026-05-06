@@ -4,8 +4,8 @@ set -e
 echo "🚀 Starting deployment..."
 
 # Pull latest changes
-git fetch origin persiapan-deplop
-git reset --hard origin/persiapan-deplop
+git fetch origin deploy-ver
+git reset --hard origin/deploy-ver
 
 # Install/Update PHP dependencies
 composer install --no-dev --optimize-autoloader
