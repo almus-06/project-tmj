@@ -164,7 +164,7 @@ class OperationsController extends Controller
 
         $columns = [];
         if ($type == 'attendances') {
-            $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status'];
+            $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status', 'Latitude', 'Longitude', 'Jarak (m)', 'Dalam Area', 'Akurasi (m)', 'Kecepatan (m/s)', 'Fake GPS'];
         } else {
             $columns = ['Date', 'Unit', 'Operator', 'Project', 'Status', 'Location', 'Damage', 'HM', 'KM'];
         }
@@ -184,7 +184,14 @@ class OperationsController extends Controller
                         $row->spo2,
                         $row->temperature,
                         $row->tak ? 'Ya' : 'Tidak',
-                        $row->fit_status
+                        $row->fit_status,
+                        $row->latitude ?? '-',
+                        $row->longitude ?? '-',
+                        $row->distance_from_project !== null ? round($row->distance_from_project) : '-',
+                        $row->is_inside_radius === true ? 'Ya' : ($row->is_inside_radius === false ? 'Tidak' : '-'),
+                        $row->accuracy !== null ? round($row->accuracy, 2) : '-',
+                        $row->speed !== null ? round($row->speed, 2) : '-',
+                        $row->is_fake_gps_suspected ? 'Ya' : 'Tidak',
                     ]);
                 } else {
                     fputcsv($file, [

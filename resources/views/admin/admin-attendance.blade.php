@@ -291,19 +291,44 @@
                         @endif
 
                         {{-- Shift --}}
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
+
+                        {{-- Location --}}
+                        @if($row->is_fake_gps_suspected)
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-purple-50 text-purple-700 border-purple-200">🚩 Fake GPS</span>
+                        @endif
+                        @if($row->is_inside_radius === true)
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200">📍 Dalam Area</span>
+                        @elseif($row->is_inside_radius === false)
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-red-50 text-red-600 border-red-200">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
+                        @elseif($row->latitude)
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-slate-50 text-slate-400 border-slate-200">📍 —</span>
+                        @endif
                     </div>
 
                     {{-- Row 3: Project + Metrics --}}
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                            📍 {{ $row->project->name ?? '—' }}
-                        </span>
-                        <div class="flex gap-1 tabular-nums">
-                            <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">BP: {{ $row->blood_pressure }}</span>
-                            <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">SpO2: {{ $row->spo2 }}%</span>
-                            <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">T: {{ $row->temperature }}°C</span>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                                📍 {{ $row->project->name ?? '—' }}
+                            </span>
+                            <div class="flex gap-1 tabular-nums">
+                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">BP: {{ $row->blood_pressure }}</span>
+                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">SpO2: {{ $row->spo2 }}%</span>
+                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">T: {{ $row->temperature }}°C</span>
+                            </div>
                         </div>
+                        
+                        @if($row->accuracy || $row->speed > 0)
+                        <div class="flex flex-wrap gap-1 tabular-nums">
+                            @if($row->accuracy)
+                                <span class="text-[9px] bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 font-bold text-sky-600">🎯 Akurasi: ±{{ round($row->accuracy) }}m</span>
+                            @endif
+                            @if($row->speed > 0)
+                                <span class="text-[9px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-bold text-amber-600">⚡ Kecepatan: {{ round($row->speed, 1) }}m/s</span>
+                            @endif
+                        </div>
+                        @endif
                     </div>
                 </div>
             @empty
@@ -331,6 +356,7 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Kehadiran</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Metrik FTW</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Hasil FTW</th>
+                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Lokasi</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Waktu</th>
                     </tr>
                 </thead>
@@ -361,7 +387,7 @@
                                 <p class="text-xs font-bold text-slate-700">{{ $row->project->name ?? '—' }}</p>
                             </td>
                             <td class="px-5 py-4">
-                                <span class="px-2 py-1 rounded text-[10px] font-bold border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
                             </td>
                             <td class="px-5 py-4">
                                 @if($row->presence_status === 'Hadir')
@@ -386,6 +412,33 @@
                                     <span class="status-chip badge-unfit">✗ Unfit</span>
                                 @endif
                             </td>
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-1 items-start">
+                                    <div class="flex flex-wrap gap-1">
+                                        @if($row->is_fake_gps_suspected)
+                                            <span class="status-chip bg-purple-50 text-purple-700 border-purple-200">🚩 Fake GPS</span>
+                                        @endif
+                                        @if($row->is_inside_radius === true)
+                                            <span class="status-chip badge-hadir">📍 Dalam Area</span>
+                                        @elseif($row->is_inside_radius === false)
+                                            <span class="status-chip badge-absent">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
+                                        @else
+                                            <span class="text-[10px] text-slate-300 font-bold">—</span>
+                                        @endif
+                                    </div>
+
+                                    @if($row->accuracy || $row->speed > 0)
+                                        <div class="flex flex-wrap gap-1 tabular-nums">
+                                            @if($row->accuracy)
+                                                <span class="text-[9px] bg-sky-50 px-1 py-0.5 rounded font-bold text-sky-600 border border-sky-100" title="Akurasi GPS">🎯 ±{{ round($row->accuracy) }}m</span>
+                                            @endif
+                                            @if($row->speed > 0)
+                                                <span class="text-[9px] bg-amber-50 px-1 py-0.5 rounded font-bold text-amber-600 border border-amber-100" title="Kecepatan saat absen">⚡ {{ round($row->speed, 1) }}m/s</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="px-5 py-4 text-right tabular-nums">
                                 <p class="text-xs font-black text-slate-800">{{ $row->created_at->format('d M Y') }}</p>
                                 <p class="text-[10px] text-slate-400 font-bold">{{ $row->created_at->format('H:i') }}</p>
@@ -393,7 +446,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center">
+                            <td colspan="8" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

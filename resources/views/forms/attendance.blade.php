@@ -49,6 +49,13 @@
 <form action="{{ route('attendance.store') }}" method="POST" id="attendanceForm">
     @csrf
     <input type="hidden" id="attendance_code_field" name="attendance_code">
+    <input type="hidden" id="geo_latitude" name="latitude">
+    <input type="hidden" id="geo_longitude" name="longitude">
+    <input type="hidden" id="geo_accuracy" name="accuracy">
+    <input type="hidden" id="geo_altitude" name="altitude">
+    <input type="hidden" id="geo_heading" name="heading">
+    <input type="hidden" id="geo_speed" name="speed">
+    <input type="hidden" id="geo_device_info" name="device_info">
 
     {{-- ══════════════════════════════════════════ --}}
     {{-- SECTION 1: Employee Info                  --}}
@@ -162,6 +169,14 @@
                 this.selectedName = p.name;
                 this.search = '';
                 this.open = false;
+                
+                // Re-calculate distance based on new project if location is already locked or tracking
+                const lat = document.getElementById('geo_latitude').value;
+                const lng = document.getElementById('geo_longitude').value;
+                const acc = document.getElementById('geo_accuracy').value;
+                if (lat && lng) {
+                    updateGeoPreview(lat, lng, acc);
+                }
             }
         }">
             <label for="project_search_input" class="field-label">
@@ -340,7 +355,71 @@
     </div>
 
     {{-- ══════════════════════════════════════════ --}}
-    {{-- SECTION 3: Status Kehadiran               --}}
+    {{-- SECTION 3: Lokasi Verifikasi              --}}
+    {{-- ══════════════════════════════════════════ --}}
+    <div class="section-card" id="geo_section">
+        <p class="section-label green">
+            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Lokasi Verifikasi
+        </p>
+
+        {{-- GPS Status Card --}}
+        <div id="geo_card" class="rounded-2xl p-4 flex items-center gap-4 transition-all duration-300"
+            style="background: #F8FAFC; border: 2px solid #E2E8F0;">
+
+            {{-- Animated Icon --}}
+            <div id="geo_icon_wrapper" class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style="background: #F1F5F9;">
+                {{-- Loading spinner (default) --}}
+                <svg id="geo_icon_loading" class="w-5 h-5 text-slate-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                {{-- Success icon --}}
+                <svg id="geo_icon_success" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color: #16A34A;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                {{-- Warning icon --}}
+                <svg id="geo_icon_warning" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color: #DC2626;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                {{-- Error icon --}}
+                <svg id="geo_icon_error" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color: #94A3B8;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                </svg>
+            </div>
+
+            {{-- Text Content --}}
+            <div class="flex-1 min-w-0">
+                <p id="geo_status_text" class="font-black text-sm text-slate-400">Mengambil lokasi...</p>
+                <p id="geo_detail_text" class="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-0.5">Mohon izinkan akses lokasi</p>
+            </div>
+
+        </div>
+
+        {{-- Accuracy Info (shown after location acquired) --}}
+        <div id="geo_accuracy_row" class="hidden flex items-center justify-between mt-2 px-1">
+            <span class="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Akurasi GPS: <span id="geo_accuracy_text">—</span>
+            </span>
+            <button type="button" id="geo_retry_btn" class="hidden text-[10px] font-bold text-indigo-500 flex items-center gap-1 hover:text-indigo-700 transition-colors"
+                onclick="requestGeolocation()">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Ulangi
+            </button>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════ --}}
+    {{-- SECTION 4: Status Kehadiran               --}}
     {{-- ══════════════════════════════════════════ --}}
     <div class="section-card">
         <p class="section-label green">
@@ -378,11 +457,11 @@
 {{-- STICKY SUBMIT BUTTON                       --}}
 {{-- ══════════════════════════════════════════ --}}
 <div class="sticky-submit-bar">
-    <button type="submit" form="attendanceForm" id="submitBtn" class="submit-btn" style="background: #059669; box-shadow: 0 4px 12px rgba(5,150,105,0.2);">
+    <button type="submit" form="attendanceForm" id="submitBtn" class="submit-btn transition-all duration-300" style="background: #94A3B8; box-shadow: none; cursor: not-allowed;" disabled>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v5m0 0l-2-2m2 2l2-2M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
         </svg>
-        MASUKAN ABSENSI
+        <span id="submitBtnText">MENCARI LOKASI...</span>
     </button>
 </div>
 
@@ -407,7 +486,239 @@ document.addEventListener('DOMContentLoaded', () => {
     selectFit('{{ old('fit_status', 'Fit') }}');
     const takVal = '{{ old('tak', '1') }}';
     if (takVal !== '1') setTAK(false);
+
+    // Auto-request geolocation on page load
+    requestGeolocation();
 });
+
+// ─── Geolocation ──────────────────────────────────────────────────────
+
+function setGeoUI(state, accuracy) {
+    const card = document.getElementById('geo_card');
+    const iconWrapper = document.getElementById('geo_icon_wrapper');
+    const statusText = document.getElementById('geo_status_text');
+    const detailText = document.getElementById('geo_detail_text');
+    const accRow = document.getElementById('geo_accuracy_row');
+    const accText = document.getElementById('geo_accuracy_text');
+    const retryBtn = document.getElementById('geo_retry_btn');
+    
+    // Submit Button
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+
+    ['loading','success','error'].forEach(id => {
+        const el = document.getElementById('geo_icon_' + id);
+        if(el) el.classList.add('hidden');
+    });
+
+    // Reset animations
+    const loadingIcon = document.getElementById('geo_icon_loading');
+    if (loadingIcon) loadingIcon.classList.remove('animate-spin');
+    card.classList.remove('animate-pulse');
+
+    if (state === 'loading') {
+        if(loadingIcon) {
+            loadingIcon.classList.remove('hidden');
+            loadingIcon.classList.add('animate-spin'); 
+            loadingIcon.style.color = '#2563EB'; 
+        }
+        
+        card.style.background = '#EFF6FF'; 
+        card.style.borderColor = '#3B82F6'; 
+        iconWrapper.style.background = '#DBEAFE'; 
+        
+        statusText.textContent = 'Mencari Satelit GPS...';
+        statusText.style.color = '#1D4ED8';
+        
+        if (accuracy) {
+            detailText.textContent = `Sedang menstabilkan (Akurasi: ±${Math.round(accuracy)}m)`;
+            card.classList.add('animate-pulse');
+        } else {
+            detailText.textContent = 'Memindai lokasi Anda...';
+        }
+        detailText.style.color = '#3B82F6';
+        
+        accRow.classList.add('hidden');
+        
+        // Lock Button
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.background = '#94A3B8';
+            submitBtn.style.boxShadow = 'none';
+            submitBtn.style.cursor = 'not-allowed';
+            if(submitBtnText) submitBtnText.textContent = 'MENCARI LOKASI...';
+        }
+    } else if (state === 'locked') {
+        const successIcon = document.getElementById('geo_icon_success');
+        if (successIcon) successIcon.classList.remove('hidden');
+        
+        card.style.background = '#F0FDF4'; 
+        card.style.borderColor = '#22C55E';
+        iconWrapper.style.background = '#DCFCE7';
+        
+        statusText.textContent = 'Lokasi GPS Terkunci';
+        statusText.style.color = '#16A34A';
+        
+        let signalQuality = 'Sinyal Buruk';
+        if (accuracy < 10) signalQuality = 'Sangat Baik';
+        else if (accuracy <= 20) signalQuality = 'Baik';
+        else if (accuracy <= 50) signalQuality = 'Cukup';
+        
+        detailText.textContent = `Siap dikirim ke server • Sinyal: ${signalQuality}`;
+        detailText.style.color = '#4ADE80';
+        
+        accRow.classList.remove('hidden');
+        accText.textContent = '±' + Math.round(accuracy) + 'm';
+        retryBtn.classList.remove('hidden');
+        
+        // Unlock Button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.background = '#059669';
+            submitBtn.style.boxShadow = '0 4px 12px rgba(5,150,105,0.2)';
+            submitBtn.style.cursor = 'pointer';
+            if(submitBtnText) submitBtnText.textContent = 'MASUKAN ABSENSI';
+        }
+    } else if (state === 'error') {
+        const errorIcon = document.getElementById('geo_icon_error');
+        if (errorIcon) errorIcon.classList.remove('hidden');
+        
+        card.style.background = '#F8FAFC'; card.style.borderColor = '#E2E8F0';
+        iconWrapper.style.background = '#F1F5F9';
+        statusText.textContent = 'Gagal Mengunci Lokasi';
+        statusText.style.color = '#64748B';
+        detailText.textContent = 'Pastikan GPS & izin lokasi aktif';
+        detailText.style.color = '#94A3B8';
+        accRow.classList.remove('hidden');
+        accText.textContent = 'N/A';
+        retryBtn.classList.remove('hidden');
+        
+        // Error Button (Stay locked)
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.background = '#EF4444'; // Red to indicate error
+            submitBtn.style.boxShadow = 'none';
+            submitBtn.style.cursor = 'not-allowed';
+            if(submitBtnText) submitBtnText.textContent = 'LOKASI GAGAL (COBA LAGI)';
+        }
+    }
+}
+
+const geoTracker = {
+    watchId: null,
+    bestPos: null,
+    stableCount: 0,
+    startTime: 0,
+    MAX_WAIT_TIME: 30000, // 30 detik waktu tunggu maksimal (sebelumnya 15s)
+    DESIRED_ACCURACY: 20 // Akurasi 20 meter dianggap sangat baik
+};
+
+function processLocationSample(pos) {
+    const acc = pos.coords.accuracy;
+    const timeElapsed = Date.now() - geoTracker.startTime;
+    
+    // Update loading UI dengan akurasi sementara
+    if (geoTracker.stableCount === 0) {
+        setGeoUI('loading', 0, acc);
+    }
+
+    // Simpan posisi terbaik sejauh ini
+    if (!geoTracker.bestPos || acc < geoTracker.bestPos.coords.accuracy) {
+        geoTracker.bestPos = pos;
+    }
+
+    // Cek stabilitas (akurasi < 20m)
+    if (acc <= geoTracker.DESIRED_ACCURACY) {
+        geoTracker.stableCount++;
+    } else {
+        // Reset jika melompat ke akurasi buruk lagi
+        if (acc > geoTracker.DESIRED_ACCURACY * 2) {
+            geoTracker.stableCount = 0; 
+        }
+    }
+
+    // Lock jika sudah stabil 3x ATAU waktu maksimal terlampaui
+    if (geoTracker.stableCount >= 3 || timeElapsed >= geoTracker.MAX_WAIT_TIME) {
+        lockLocation(geoTracker.bestPos);
+    }
+}
+
+function lockLocation(pos) {
+    if (geoTracker.watchId) {
+        navigator.geolocation.clearWatch(geoTracker.watchId);
+        geoTracker.watchId = null;
+    }
+    
+    if (!pos) {
+        setGeoUI('error');
+        return;
+    }
+
+    // Set Data ke Hidden Inputs
+    document.getElementById('geo_latitude').value = pos.coords.latitude;
+    document.getElementById('geo_longitude').value = pos.coords.longitude;
+    document.getElementById('geo_accuracy').value = pos.coords.accuracy;
+    document.getElementById('geo_altitude').value = pos.coords.altitude || '';
+    document.getElementById('geo_heading').value = pos.coords.heading || '';
+    document.getElementById('geo_speed').value = pos.coords.speed || '';
+    document.getElementById('geo_device_info').value = navigator.userAgent;
+
+    setGeoUI('locked', pos.coords.accuracy);
+}
+
+function requestGeolocation() {
+    if (!navigator.geolocation) { 
+        setGeoUI('error'); 
+        return; 
+    }
+    
+    if (geoTracker.watchId) navigator.geolocation.clearWatch(geoTracker.watchId);
+    
+    geoTracker.bestPos = null;
+    geoTracker.stableCount = 0;
+    geoTracker.startTime = Date.now();
+    
+    setGeoUI('loading');
+
+    // Gunakan watchPosition untuk sampling berkali-kali (High Accuracy)
+    geoTracker.watchId = navigator.geolocation.watchPosition(
+        processLocationSample,
+        function (err) { 
+            console.warn("High accuracy Geo error: ", err);
+            if (geoTracker.watchId) {
+                navigator.geolocation.clearWatch(geoTracker.watchId);
+                geoTracker.watchId = null;
+            }
+
+            // FALLBACK: Jika gagal mengunci GPS presisi tinggi (misal di dalam gedung/baterai hemat),
+            // coba satu kali tembakan cepat dengan akurasi rendah (WiFi/BTS)
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    console.log("Fallback location found.");
+                    lockLocation(pos);
+                },
+                function(fallbackErr) {
+                    console.error("Fallback error: ", fallbackErr);
+                    // Jika ada bestPos dari sampel sebelumnya, pakai itu. Jika tidak, pasrah (error).
+                    if (geoTracker.bestPos) {
+                        lockLocation(geoTracker.bestPos);
+                    } else {
+                        setGeoUI('error'); 
+                    }
+                },
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+            );
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+    
+    // Safety Fallback: paksa berhenti setelah waktu maksimal + buffer
+    setTimeout(() => {
+        if (geoTracker.watchId) {
+            lockLocation(geoTracker.bestPos);
+        }
+    }, geoTracker.MAX_WAIT_TIME + 2000);
+}
 
 // ─── Presence Toggle ──────────────────────────────────────────────────
 function selectPresence(val) {

@@ -21,7 +21,7 @@ class AttendanceController extends Controller
         );
 
         $projects = Project::hydrate(
-            Cache::remember('projects_list', 86400, fn () => Project::orderBy('name')->get()->toArray())
+            Cache::remember('projects_list_geo', 86400, fn () => Project::orderBy('name')->get()->toArray())
         );
 
         return view('forms.attendance', compact('employees', 'projects'));
@@ -50,10 +50,32 @@ class AttendanceController extends Controller
             'tak' => 'required|boolean',
             'project_id' => 'required|exists:projects,id',
             'fit_status' => 'required|string|in:Fit,Unfit',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'accuracy' => 'nullable|numeric',
+            'altitude' => 'nullable|numeric',
+            'heading' => 'nullable|numeric',
+            'speed' => 'nullable|numeric',
+            'device_info' => 'nullable|string',
         ], [
             'employee_id.unique' => 'Karyawan ini sudah melakukan absensi hari ini.',
             'attendance_code.unique' => 'Terjadi benturan kode absensi (Duplicate). Silakan coba lagi.',
         ]);
+
+        // Basic Anti-Fake GPS Detection
+        $isFakeGps = false;
+        
+        // 1. Akurasi < 3 meter biasanya tidak mungkin dari GPS HP standard, kemungkinan Mock Location
+        if (isset($validated['accuracy']) && $validated['accuracy'] > 0 && $validated['accuracy'] < 3) {
+            $isFakeGps = true;
+        }
+        
+        // 2. Kecepatan tidak wajar (misal: bergerak > 20 m/s atau ~72 km/h saat absen)
+        if (isset($validated['speed']) && $validated['speed'] > 20) {
+            $isFakeGps = true;
+        }
+
+        $validated['is_fake_gps_suspected'] = $isFakeGps;
 
         // Calculate Shift
         $project = Project::find($validated['project_id']);
@@ -76,6 +98,21 @@ class AttendanceController extends Controller
 
         $validated['shift'] = $shift;
 
+        // Calculate geolocation distance if coordinates are provided
+        if (!empty($validated['latitude']) && !empty($validated['longitude']) && $project) {
+            if ($project->latitude && $project->longitude) {
+                $distance = $this->haversineDistance(
+                    $validated['latitude'],
+                    $validated['longitude'],
+                    $project->latitude,
+                    $project->longitude
+                );
+
+                $validated['distance_from_project'] = round($distance, 2);
+                $validated['is_inside_radius'] = $distance <= $project->radius_meters;
+            }
+        }
+
         // 2. Insert atomically
         $record = Attendance::create($validated);
 
@@ -94,6 +131,32 @@ class AttendanceController extends Controller
 
         return redirect()->route('attendance.success')
             ->with('submission_id', $record->attendance_code)
-            ->with('submission_time', $record->created_at->format('d M Y, H:i'));
+            ->with('submission_time', $record->created_at->format('d M Y, H:i'))
+            ->with('is_inside_radius', $record->is_inside_radius)
+            ->with('distance', $record->distance_from_project);
+    }
+
+    /**
+     * Calculate distance between two GPS points using the Haversine formula.
+     *
+     * @param float $lat1 Latitude of point 1
+     * @param float $lon1 Longitude of point 1
+     * @param float $lat2 Latitude of point 2
+     * @param float $lon2 Longitude of point 2
+     * @return float Distance in meters
+     */
+    private function haversineDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371000; // Earth's radius in meters
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }

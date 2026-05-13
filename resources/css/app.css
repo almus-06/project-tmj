@@ -179,6 +179,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: 1px solid transparent;
+    white-space: nowrap;
 }
 
 /* Attendance Chips */

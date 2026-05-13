@@ -20,6 +20,28 @@ class Attendance extends Model
         'tak',
         'fit_status',
         'shift',
+        'latitude',
+        'longitude',
+        'distance_from_project',
+        'is_inside_radius',
+        'accuracy',
+        'altitude',
+        'heading',
+        'speed',
+        'device_info',
+        'is_fake_gps_suspected'
+    ];
+
+    protected $casts = [
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
+        'distance_from_project' => 'double',
+        'is_inside_radius' => 'boolean',
+        'accuracy' => 'double',
+        'altitude' => 'double',
+        'heading' => 'double',
+        'speed' => 'double',
+        'is_fake_gps_suspected' => 'boolean'
     ];
 
     public function employee()
