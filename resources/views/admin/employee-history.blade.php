@@ -390,16 +390,16 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($attendances as $row)
                         <tr class="hover:bg-indigo-50 transition-colors border-b border-slate-200/60" style="{{ $loop->even ? 'background-color: #EFEFEF;' : '' }}">
-                            <td class="px-5 py-4 text-xs font-bold text-slate-800">
-                                <p class="font-black">{{ $row->created_at->format('d M Y') }}</p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $row->created_at->format('H:i') }}</p>
+                            <td class="px-5 py-2 text-xs font-bold text-slate-800">
+                                <p class="font-black text-xs">{{ $row->created_at->format('d M Y') }}</p>
+                                <p class="text-[9px] text-slate-400 mt-0.5">{{ $row->created_at->format('H:i') }}</p>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->photo_path)
-                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $employee->name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-10 h-10 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
+                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $employee->name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-8 h-8 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
                                         <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Selfie">
                                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                         </div>
@@ -408,44 +408,44 @@
                                     <span class="text-[10px] text-slate-400 font-bold">—</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4 text-xs font-bold text-slate-700">
+                            <td class="px-5 py-2 text-xs font-bold text-slate-700">
                                 {{ $row->project->name ?? '—' }}
                             </td>
-                            <td class="px-5 py-4 text-xs font-bold text-slate-700">
+                            <td class="px-5 py-2 text-xs font-bold text-slate-700">
                                 {{ $row->shift }}
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->presence_status === 'Hadir')
-                                    <span class="status-chip badge-hadir">✓ Hadir</span>
+                                    <span class="status-chip badge-hadir" style="padding-top: 2px; padding-bottom: 2px;">✓ Hadir</span>
                                 @elseif($row->presence_status === 'Izin')
-                                    <span class="status-chip badge-izin">ℹ Izin</span>
+                                    <span class="status-chip badge-izin" style="padding-top: 2px; padding-bottom: 2px;">ℹ Izin</span>
                                 @else
-                                    <span class="status-chip badge-absent">✗ Cuti</span>
+                                    <span class="status-chip badge-absent" style="padding-top: 2px; padding-bottom: 2px;">✗ Cuti</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->presence_status === 'Hadir')
                                     @if($row->fit_status === 'Fit')
-                                        <span class="status-chip badge-fit">✓ Fit</span>
+                                        <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
                                     @else
-                                        <span class="status-chip badge-unfit">✗ Unfit</span>
+                                        <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
                                     @endif
                                 @else
                                     <span class="text-slate-300 font-bold">—</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->presence_status === 'Hadir')
-                                    <div class="flex flex-wrap gap-2 text-[10px] tabular-nums font-bold text-slate-600">
-                                        <span class="bg-slate-100 px-1.5 py-0.5 rounded">BP: {{ $row->blood_pressure }}</span>
-                                        <span class="bg-slate-100 px-1.5 py-0.5 rounded">SpO2: {{ $row->spo2 }}%</span>
-                                        <span class="bg-slate-100 px-1.5 py-0.5 rounded">T: {{ $row->temperature }}°C</span>
+                                    <div class="flex items-center gap-1 text-[9px] tabular-nums font-bold text-slate-600">
+                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
+                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
+                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
                                     </div>
                                 @else
                                     <span class="text-slate-300 font-bold">—</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 <div class="flex flex-col gap-1 items-start">
                                     <div class="flex flex-wrap gap-1">
                                         @if($row->is_fake_gps_suspected)

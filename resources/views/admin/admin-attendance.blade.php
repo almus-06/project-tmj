@@ -379,94 +379,94 @@
                             $colorPair = explode(',', $avatarColors[abs(crc32($name)) % count($avatarColors)]);
                         @endphp
                         <tr class="hover:bg-indigo-50 transition-colors border-b border-slate-200/60" style="{{ $loop->even ? 'background-color: #EFEFEF;' : '' }}">
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 <div class="flex items-center gap-3">
                                     <div class="avatar text-[10px] font-black"
                                         style="background: {{ $colorPair[0] }}; color: {{ $colorPair[1] }}; border-radius: 6px;">
                                         {{ $initials }}
                                     </div>
                                     <div>
-                                        <a href="{{ route('workforce.attendance.employee', $row->employee_id) }}" class="font-black text-slate-900 hover:text-indigo-600 transition-colors leading-tight block">
+                                        <a href="{{ route('workforce.attendance.employee', $row->employee_id) }}" class="font-black text-slate-900 hover:text-indigo-600 transition-colors leading-tight block text-xs">
                                             {{ $name }}
                                         </a>
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
                                             {{ $row->employee->position ?? '—' }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->photo_path)
-                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-10 h-10 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
+                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-8 h-8 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
                                         <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Selfie">
                                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                         </div>
                                     </button>
                                 @else
-                                    <span class="text-xs text-slate-400 font-medium">No Photo</span>
+                                    <span class="text-[10px] text-slate-400 font-bold">—</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 <p class="text-xs font-bold text-slate-700">{{ $row->project->name ?? '—' }}</p>
                             </td>
-                            <td class="px-5 py-4">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
+                            <td class="px-5 py-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->presence_status === 'Hadir')
-                                    <span class="status-chip badge-hadir">{{ $row->presence_status }}</span>
+                                    <span class="status-chip badge-hadir" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
                                 @elseif(in_array($row->presence_status, ['Izin', 'Cuti']))
-                                    <span class="status-chip badge-izin">{{ $row->presence_status }}</span>
+                                    <span class="status-chip badge-izin" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
                                 @else
-                                    <span class="status-chip badge-absent">{{ $row->presence_status }}</span>
+                                    <span class="status-chip badge-absent" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
-                                <div class="flex flex-wrap gap-2 tabular-nums">
-                                    <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600">BP: {{ $row->blood_pressure }}</span>
-                                    <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600">SpO2: {{ $row->spo2 }}%</span>
-                                    <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600">T: {{ $row->temperature }}°C</span>
+                            <td class="px-5 py-2">
+                                <div class="flex items-center gap-1 tabular-nums">
+                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
+                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
+                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
                                 </div>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-5 py-2">
                                 @if($row->fit_status === 'Fit')
-                                    <span class="status-chip badge-fit">✓ Fit</span>
+                                    <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
                                 @else
-                                    <span class="status-chip badge-unfit">✗ Unfit</span>
+                                    <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
-                                <div class="flex flex-col gap-1 items-start">
+                            <td class="px-5 py-2">
+                                <div class="flex flex-col gap-0.5 items-start">
                                     <div class="flex flex-wrap gap-1">
                                         @if($row->is_fake_gps_suspected)
-                                            <span class="status-chip bg-purple-50 text-purple-700 border-purple-200">🚩 Fake GPS</span>
+                                            <span class="status-chip bg-purple-50 text-purple-700 border-purple-200" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">🚩 Fake GPS</span>
                                         @endif
                                         @if($row->is_inside_radius === true)
-                                            <span class="status-chip badge-hadir">📍 Dalam Area</span>
+                                            <span class="status-chip badge-hadir" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">📍 Dalam Area</span>
                                         @elseif($row->is_inside_radius === false)
-                                            <span class="status-chip badge-absent">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
+                                            <span class="status-chip badge-absent" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
                                         @else
-                                            <span class="text-[10px] text-slate-300 font-bold">—</span>
+                                            <span class="text-[9px] text-slate-300 font-bold">—</span>
                                         @endif
                                     </div>
 
                                     @if($row->accuracy || $row->speed > 0)
                                         <div class="flex flex-wrap gap-1 tabular-nums">
                                             @if($row->accuracy)
-                                                <span class="text-[9px] bg-sky-50 px-1 py-0.5 rounded font-bold text-sky-600 border border-sky-100" title="Akurasi GPS">🎯 ±{{ round($row->accuracy) }}m</span>
+                                                <span class="text-[8px] bg-sky-50 px-1 py-0.2 rounded font-bold text-sky-600 border border-sky-100" title="Akurasi GPS">🎯 ±{{ round($row->accuracy) }}m</span>
                                             @endif
                                             @if($row->speed > 0)
-                                                <span class="text-[9px] bg-amber-50 px-1 py-0.5 rounded font-bold text-amber-600 border border-amber-100" title="Kecepatan saat absen">⚡ {{ round($row->speed, 1) }}m/s</span>
+                                                <span class="text-[8px] bg-amber-50 px-1 py-0.2 rounded font-bold text-amber-600 border border-amber-100" title="Kecepatan saat absen">⚡ {{ round($row->speed, 1) }}m/s</span>
                                             @endif
                                         </div>
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-5 py-4 text-right tabular-nums">
+                            <td class="px-5 py-2 text-right tabular-nums">
                                 <p class="text-xs font-black text-slate-800">{{ $row->created_at->format('d M Y') }}</p>
-                                <p class="text-[10px] text-slate-400 font-bold">{{ $row->created_at->format('H:i') }}</p>
+                                <p class="text-[9px] text-slate-400 font-bold">{{ $row->created_at->format('H:i') }}</p>
                             </td>
                         </tr>
                     @empty
