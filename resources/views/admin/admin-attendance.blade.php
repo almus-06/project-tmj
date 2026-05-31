@@ -23,9 +23,23 @@
         </a>
     </div>
 
-    {{-- Summary Cards (Synchronized with Dashboard) --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        {{-- Hadir --}}
+    {{-- Summary Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        {{-- Total Entri --}}
+        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-indigo-500">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Total Entri</p>
+            <p class="text-4xl font-black text-indigo-600 tabular-nums">{{ $totalCount }}</p>
+            <p class="text-[10px] text-indigo-400 font-bold mt-2 uppercase">
+                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Hari Ini' }}
+            </p>
+        </div>
+
+        {{-- Fit To Work --}}
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-green-500">
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -33,7 +47,7 @@
                 </svg>
             </div>
             <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Fit To Work</p>
-            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $hadirCount }}</p>
+            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $fitCount }}</p>
             <p class="text-[10px] text-green-400 font-bold mt-2 uppercase">
                 {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Sehat' }}
             </p>
@@ -50,34 +64,6 @@
             <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $unfitCount }}</p>
             <p class="text-[10px] text-amber-400 font-bold mt-2 uppercase">
                 {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Kurang Sehat' }}
-            </p>
-        </div>
-
-        {{-- Leave --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-sky-500">
-            <div class="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-1">CUTI / IZIN</p>
-            <p class="text-4xl font-black text-sky-600 tabular-nums">{{ $leaveCount }}</p>
-            <p class="text-[10px] text-sky-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Tidak Bertugas' }}
-            </p>
-        </div>
-
-        {{-- Alpha --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-red-600">
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1">Tanpa Keterangan</p>
-            <p class="text-4xl font-black text-red-600 tabular-nums">{{ $alphaCount }}</p>
-            <p class="text-[10px] text-red-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Tidak Hadir' }}
             </p>
         </div>
     </div>
@@ -114,57 +100,7 @@
             </div>
 
             {{-- Row 2: Dropdowns + Buttons --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                {{-- Status Kehadiran --}}
-                <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Status Kehadiran</label>
-                    <div x-data="{
-                        search: '',
-                        open: false,
-                        selectedName: '{{ request('status') ?: 'Semua Status' }}',
-                        selectedId: '{{ request('status', '') }}',
-                        options: [
-                            { id: '', name: 'Semua Status' },
-                            { id: 'Hadir', name: 'Hadir' },
-                            { id: 'Tidak Hadir', name: 'Tidak Hadir' },
-                            { id: 'Izin', name: 'Izin' },
-                            { id: 'Cuti', name: 'Cuti' },
-                            { id: 'Tanpa Keterangan', name: 'Tanpa Keterangan' }
-                        ],
-                        get filteredOptions() {
-                            if (this.search === '') return this.options;
-                            return this.options.filter(o => o.name.toLowerCase().includes(this.search.toLowerCase()));
-                        },
-                        selectOption(o) {
-                            this.selectedId = o.id;
-                            this.selectedName = o.name;
-                            this.search = '';
-                            this.open = false;
-                        }
-                    }" class="relative" @click.away="open = false; search = ''">
-                        <input type="hidden" name="status" :value="selectedId">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            </div>
-                            <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm pl-9 pr-10 py-2 text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition cursor-pointer"
-                                :placeholder="selectedName" x-model="search" @click="open = true" @keydown.escape="open = false; search = ''" autocomplete="off">
-                            <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-                                <button type="button" @click="open = !open" tabindex="-1" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1.5 rounded-full transition-colors">
-                                    <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-1 scale-95" class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden" style="display: none;">
-                            <div class="max-h-60 overflow-y-auto custom-scrollbar">
-                                <template x-for="opt in filteredOptions" :key="opt.id">
-                                    <div @click="selectOption(opt)" class="px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-sm font-bold text-slate-700" :class="selectedId === opt.id ? 'bg-indigo-50/50 text-indigo-700' : ''" x-text="opt.name"></div>
-                                </template>
-                                <div x-show="filteredOptions.length === 0" class="px-4 py-4 text-center"><p class="text-xs font-bold text-slate-400">Tidak ditemukan</p></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
 
                 {{-- Area Project --}}
                 <div>
@@ -253,16 +189,10 @@
                     {{-- Row 1: Avatar + Name + Time --}}
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="flex items-center gap-3 min-w-0">
-                            @if($row->photo_path)
-                                <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-10 h-10 border border-slate-200 flex-shrink-0 bg-slate-100">
-                                    <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover" alt="Selfie">
-                                </button>
-                            @else
-                                <div class="avatar text-[10px] font-black flex-shrink-0"
-                                    style="background: {{ $colorPair[0] }}; color: {{ $colorPair[1] }}; border-radius: 6px;">
-                                    {{ $initials }}
-                                </div>
-                            @endif
+                            <div class="avatar text-[10px] font-black flex-shrink-0"
+                                style="background: {{ $colorPair[0] }}; color: {{ $colorPair[1] }}; border-radius: 6px;">
+                                {{ $initials }}
+                            </div>
                             <div class="min-w-0">
                                 <a href="{{ route('workforce.attendance.employee', $row->employee_id) }}" class="font-black text-slate-900 hover:text-indigo-600 transition-colors text-sm leading-tight truncate block">
                                     {{ $name }}
@@ -280,17 +210,6 @@
 
                     {{-- Row 2: Status Badges --}}
                     <div class="flex flex-wrap items-center gap-1.5 mb-3">
-                        {{-- Kehadiran --}}
-                        @if($row->presence_status === 'Hadir')
-                            <span class="status-chip badge-hadir">✓ Hadir</span>
-                        @elseif($row->presence_status === 'Tidak Hadir' || $row->presence_status === 'Tanpa Keterangan')
-                            <span class="status-chip badge-alpha">✗ Alpha</span>
-                        @elseif(in_array($row->presence_status, ['Izin', 'Cuti']))
-                            <span class="status-chip badge-izin">{{ $row->presence_status }}</span>
-                        @else
-                            <span class="status-chip badge-absent">{{ $row->presence_status }}</span>
-                        @endif
-
                         {{-- Fit Status --}}
                         @if($row->fit_status === 'Fit')
                             <span class="status-chip badge-fit">✓ Fit</span>
@@ -300,18 +219,6 @@
 
                         {{-- Shift --}}
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
-
-                        {{-- Location --}}
-                        @if($row->is_fake_gps_suspected)
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-purple-50 text-purple-700 border-purple-200">🚩 Fake GPS</span>
-                        @endif
-                        @if($row->is_inside_radius === true)
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200">📍 Dalam Area</span>
-                        @elseif($row->is_inside_radius === false)
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-red-50 text-red-600 border-red-200">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
-                        @elseif($row->latitude)
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap bg-slate-50 text-slate-400 border-slate-200">📍 —</span>
-                        @endif
                     </div>
 
                     {{-- Row 3: Project + Metrics --}}
@@ -359,13 +266,10 @@
                 <thead>
                     <tr class="bg-slate-50/80 border-b border-slate-100">
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Personel</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Foto</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Kehadiran</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Metrik FTW</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Hasil FTW</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Lokasi</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Waktu</th>
                     </tr>
                 </thead>
@@ -395,33 +299,10 @@
                                 </div>
                             </td>
                             <td class="px-5 py-2">
-                                @if($row->photo_path)
-                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-8 h-8 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
-                                        <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Selfie">
-                                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                @else
-                                    <span class="text-[10px] text-slate-400 font-bold">—</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-2">
                                 <p class="text-xs font-bold text-slate-700">{{ $row->project->name ?? '—' }}</p>
                             </td>
                             <td class="px-5 py-2">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
-                            </td>
-                            <td class="px-5 py-2">
-                                @if($row->presence_status === 'Hadir')
-                                    <span class="status-chip badge-hadir" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
-                                @elseif(in_array($row->presence_status, ['Izin', 'Cuti']))
-                                    <span class="status-chip badge-izin" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
-                                @else
-                                    <span class="status-chip badge-absent" style="padding-top: 2px; padding-bottom: 2px;">{{ $row->presence_status }}</span>
-                                @endif
                             </td>
                             <td class="px-5 py-2">
                                 <div class="flex items-center gap-1 tabular-nums">
@@ -437,33 +318,6 @@
                                     <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-2">
-                                <div class="flex flex-col gap-0.5 items-start">
-                                    <div class="flex flex-wrap gap-1">
-                                        @if($row->is_fake_gps_suspected)
-                                            <span class="status-chip bg-purple-50 text-purple-700 border-purple-200" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">🚩 Fake GPS</span>
-                                        @endif
-                                        @if($row->is_inside_radius === true)
-                                            <span class="status-chip badge-hadir" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">📍 Dalam Area</span>
-                                        @elseif($row->is_inside_radius === false)
-                                            <span class="status-chip badge-absent" style="padding-top: 1px; padding-bottom: 1px; font-size: 0.65rem;">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
-                                        @else
-                                            <span class="text-[9px] text-slate-300 font-bold">—</span>
-                                        @endif
-                                    </div>
-
-                                    @if($row->accuracy || $row->speed > 0)
-                                        <div class="flex flex-wrap gap-1 tabular-nums">
-                                            @if($row->accuracy)
-                                                <span class="text-[8px] bg-sky-50 px-1 py-0.2 rounded font-bold text-sky-600 border border-sky-100" title="Akurasi GPS">🎯 ±{{ round($row->accuracy) }}m</span>
-                                            @endif
-                                            @if($row->speed > 0)
-                                                <span class="text-[8px] bg-amber-50 px-1 py-0.2 rounded font-bold text-amber-600 border border-amber-100" title="Kecepatan saat absen">⚡ {{ round($row->speed, 1) }}m/s</span>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
                             <td class="px-5 py-2 text-right tabular-nums">
                                 <p class="text-xs font-black text-slate-800">{{ $row->created_at->format('d M Y') }}</p>
                                 <p class="text-[9px] text-slate-400 font-bold">{{ $row->created_at->format('H:i') }}</p>
@@ -471,7 +325,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-12 text-center">
+                            <td colspan="6" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -523,88 +377,5 @@
         </div>
     </div>
 
-    {{-- Premium Photo View Modal --}}
-    <div id="photo_modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" onclick="hidePhotoModal()">
-        <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col" onclick="event.stopPropagation()">
-            {{-- Modal Header --}}
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div>
-                    <h3 id="modal_employee_name" class="font-black text-slate-900 text-sm leading-tight">Nama Karyawan</h3>
-                    <p id="modal_attendance_time" class="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Tanggal & Waktu</p>
-                </div>
-                <button type="button" onclick="hidePhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            {{-- Photo Body --}}
-            <div class="relative bg-slate-950 aspect-square flex items-center justify-center overflow-hidden">
-                <img id="modal_photo_img" src="" class="w-full h-full object-cover" alt="Foto Verifikasi Full">
-            </div>
-
-            {{-- Metadata Info Footer --}}
-            <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-600 space-y-2">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-slate-400 uppercase text-[9px] tracking-wider">Project Area</span>
-                    <span id="modal_project_name" class="font-black text-slate-800 bg-slate-200 px-2 py-0.5 rounded text-[10px]">Project</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-slate-400 uppercase text-[9px] tracking-wider">Status Jarak</span>
-                    <span id="modal_distance_status" class="font-bold text-[10px] px-2 py-0.5 rounded">Status Jarak</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function showPhotoModal(imgUrl, employeeName, timeStr, projectName, distance, isInsideRadius) {
-            const modal = document.getElementById('photo_modal');
-            const modalImg = document.getElementById('modal_photo_img');
-            const modalName = document.getElementById('modal_employee_name');
-            const modalTime = document.getElementById('modal_attendance_time');
-            const modalProject = document.getElementById('modal_project_name');
-            const modalDistance = document.getElementById('modal_distance_status');
-
-            modalImg.src = imgUrl;
-            modalName.innerText = employeeName;
-            modalTime.innerText = timeStr;
-            modalProject.innerText = projectName;
-
-            // Parse isInsideRadius and distance
-            const radiusInside = isInsideRadius === '1' || isInsideRadius === 'true' || isInsideRadius === true;
-            if (radiusInside) {
-                modalDistance.innerText = '📍 Dalam Radius Area';
-                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
-            } else if (distance && distance !== '') {
-                const distVal = parseFloat(distance);
-                const formattedDist = distVal >= 1000 ? (distVal / 1000).toFixed(1) + 'km' : Math.round(distVal) + 'm';
-                modalDistance.innerText = '⚠ Luar Radius (' + formattedDist + ')';
-                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200';
-            } else {
-                modalDistance.innerText = '📍 —';
-                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-500';
-            }
-
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            modal.firstElementChild.classList.remove('scale-95');
-            modal.firstElementChild.classList.add('scale-100');
-        }
-
-        function hidePhotoModal() {
-            const modal = document.getElementById('photo_modal');
-            modal.classList.add('pointer-events-none', 'opacity-0');
-            modal.firstElementChild.classList.remove('scale-100');
-            modal.firstElementChild.classList.add('scale-95');
-        }
-
-        // Close on ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hidePhotoModal();
-            }
-        });
-    </script>
 
 @endsection

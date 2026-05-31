@@ -17,8 +17,42 @@ class AttendanceHistorySeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command->info('Creating sample verification photo...');
+        $this->command->info('Updating project coordinates to Luwu Timur regions...');
         
+        // 1. Malili, Luwu Timur
+        $project1 = Project::find(1);
+        if ($project1) {
+            $project1->update([
+                'latitude' => -2.63930000,
+                'longitude' => 121.19630000,
+                'location' => 'Malili, Luwu Timur'
+            ]);
+        }
+
+        // 2. Sorowako, Luwu Timur
+        $project2 = Project::find(2);
+        if ($project2) {
+            $project2->update([
+                'latitude' => -2.62470000,
+                'longitude' => 121.35330000,
+                'location' => 'Sorowako, Luwu Timur'
+            ]);
+        }
+
+        // 3. Towuti, Luwu Timur
+        $project3 = Project::find(3);
+        if ($project3) {
+            $project3->update([
+                'latitude' => -2.76670000,
+                'longitude' => 121.43330000,
+                'location' => 'Towuti, Luwu Timur'
+            ]);
+        }
+
+        $this->command->info('Truncating current attendance table...');
+        Attendance::truncate();
+
+        $this->command->info('Creating sample verification photo...');
         // Ensure storage directory exists
         Storage::disk('public')->makeDirectory('attendance_photos');
         
@@ -29,55 +63,59 @@ class AttendanceHistorySeeder extends Seeder
         // Save placeholder photo
         $placeholderPath = 'attendance_photos/placeholder.png';
         Storage::disk('public')->put($placeholderPath, $imageData);
-        
-        $employees = Employee::whereIn('id', [117, 134])->get();
-        if ($employees->isEmpty()) {
-            $this->command->error('Target employees (117, 134) not found.');
-            return;
-        }
 
+        // Ensure we have exactly 200 employees
+        $employeeCount = Employee::count();
+        if ($employeeCount < 200) {
+            $needed = 200 - $employeeCount;
+            $this->command->info("Creating {$needed} dummy employees to reach a total of 200...");
+            for ($i = 1; $i <= $needed; $i++) {
+                Employee::create([
+                    'name' => "Simulated Employee " . $i,
+                    'position' => "OPERATOR LAPANGAN"
+                ]);
+            }
+        }
+        
+        $employees = Employee::take(200)->get();
         $projects = Project::all();
         if ($projects->isEmpty()) {
             $this->command->error('No projects found to associate attendance.');
             return;
         }
 
-        $this->command->info('Generating 100 attendance records per employee...');
+        $this->command->info('Simulating 1 month (30 days) of attendance for 200 employees (~6,000 records)...');
 
-        foreach ($employees as $employee) {
-            $this->command->info("Seeding for employee: {$employee->name} (ID: {$employee->id})");
-            
-            // Generate for the last 120 days, aiming for ~100 active days (excluding most Sundays)
-            $recordsCount = 0;
-            $currentDate = Carbon::now()->subDays(120);
-            $endDate = Carbon::now();
+        $startDate = Carbon::now()->subDays(30);
+        $endDate = Carbon::now();
+        $recordsCount = 0;
 
-            while ($currentDate->lte($endDate) && $recordsCount < 100) {
-                // Skip most Sundays (simulation of day off)
-                if ($currentDate->dayOfWeek === Carbon::SUNDAY && rand(1, 10) > 2) {
-                    $currentDate->addDay();
-                    continue;
-                }
+        // Pre-create some device names
+        $devices = ['Samsung Galaxy A54', 'Xiaomi Redmi Note 12', 'Oppo Reno 10', 'iPhone 13', 'Vivo V29'];
 
+        for ($day = 0; $day < 30; $day++) {
+            $currentDate = $startDate->copy()->addDays($day);
+            $this->command->info("Seeding data for date: " . $currentDate->format('Y-m-d'));
+
+            $attendanceData = [];
+
+            foreach ($employees as $employee) {
                 // Random presence status
                 $randVal = rand(1, 100);
-                if ($randVal <= 88) {
+                if ($randVal <= 90) {
                     $presenceStatus = 'Hadir';
-                } elseif ($randVal <= 93) {
+                } elseif ($randVal <= 95) {
                     $presenceStatus = 'Sakit';
                 } else {
                     $presenceStatus = 'Izin';
                 }
 
                 $project = $projects->random();
-                
-                // Determine shifts
                 $shift = rand(1, 10) > 2 ? 'Shift Pagi' : 'Shift Malam';
                 
                 // Health metrics
                 if ($presenceStatus === 'Hadir') {
-                    // Mostly healthy, occasionally unfit
-                    $isHealthy = rand(1, 100) > 3;
+                    $isHealthy = rand(1, 100) > 4;
                     if ($isHealthy) {
                         $temp = number_format(rand(360, 372) / 10, 2);
                         $spo2 = rand(96, 100);
@@ -85,7 +123,6 @@ class AttendanceHistorySeeder extends Seeder
                         $bpDiastolic = rand(70, 85);
                         $fitStatus = 'Fit';
                     } else {
-                        // Unfit case
                         $temp = number_format(rand(378, 389) / 10, 2);
                         $spo2 = rand(90, 94);
                         $bpSystolic = rand(130, 145);
@@ -93,9 +130,8 @@ class AttendanceHistorySeeder extends Seeder
                         $fitStatus = 'Unfit';
                     }
                     $bloodPressure = "{$bpSystolic}/{$bpDiastolic}";
-                    $tak = rand(0, 10) > 8 ? 1 : 0; // Tanda Awal Kelelahan
+                    $tak = rand(0, 10) > 8 ? 1 : 0;
                 } else {
-                    // Sick/Permit status
                     $temp = 0.00;
                     $spo2 = 0;
                     $bloodPressure = '0/0';
@@ -103,44 +139,38 @@ class AttendanceHistorySeeder extends Seeder
                     $fitStatus = 'Unfit';
                 }
 
-                // Geolocation
-                $latOffset = (rand(-50, 50) / 100000);
-                $lonOffset = (rand(-50, 50) / 100000);
+                // Geolocation coordinates (within radius most of the time)
+                $latOffset = (rand(-40, 40) / 100000);
+                $lonOffset = (rand(-40, 40) / 100000);
                 $latitude = ($project->latitude ?? -2.62330530) + $latOffset;
                 $longitude = ($project->longitude ?? 121.36963140) + $lonOffset;
                 
-                // 5% of the time, make distance outside radius
-                $isOutside = rand(1, 100) <= 5;
+                $isOutside = rand(1, 100) <= 5; // 5% outside radius
                 if ($isOutside && $presenceStatus === 'Hadir') {
-                    $latitude += 0.005; // ~500 meters away
-                    $longitude += 0.005;
-                    $distance = rand(500, 800);
+                    $latitude += 0.004;
+                    $longitude += 0.004;
+                    $distance = rand(450, 750);
                     $isInsideRadius = false;
                 } else {
-                    $distance = rand(2, 18);
+                    $distance = rand(2, 20);
                     $isInsideRadius = true;
                 }
 
-                // Accuracy and GPS details
                 $accuracy = number_format(rand(30, 120) / 10, 1);
                 $altitude = rand(120, 280);
                 $heading = rand(0, 359);
                 $speed = rand(0, 10) > 8 ? number_format(rand(5, 12) / 10, 2) : 0.00;
-
-                // Device info
-                $devices = ['Samsung Galaxy A54', 'Xiaomi Redmi Note 12', 'Oppo Reno 10', 'iPhone 13', 'Vivo V29'];
                 $deviceInfo = $devices[array_rand($devices)];
-                
-                // Suspect fake GPS 2% of the time
-                $isFakeGps = rand(1, 100) <= 2;
+                $isFakeGps = rand(1, 100) <= 2; // 2% fake GPS
 
-                // Create attendance code
                 $datePrefix = $currentDate->format('dmy');
-                $randomSeq = str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
-                $attendanceCode = "FitToWork-TMJ-{$datePrefix}-{$randomSeq}";
+                $attendanceCode = "FitToWork-TMJ-{$datePrefix}-" . str_pad($employee->id, 4, '0', STR_PAD_LEFT);
 
-                // Create record
-                Attendance::create([
+                // Set attendance time
+                $hour = ($shift === 'Shift Pagi') ? rand(6, 8) : rand(18, 20);
+                $createdAt = $currentDate->copy()->setHour($hour)->setMinute(rand(0, 59))->setSecond(rand(0, 59));
+
+                $attendanceData[] = [
                     'attendance_code' => $attendanceCode,
                     'employee_id' => $employee->id,
                     'project_id' => $project->id,
@@ -162,15 +192,18 @@ class AttendanceHistorySeeder extends Seeder
                     'device_info' => $deviceInfo,
                     'is_fake_gps_suspected' => $isFakeGps,
                     'photo_path' => $presenceStatus === 'Hadir' ? $placeholderPath : null,
-                    'created_at' => $currentDate->copy()->setHour(rand(6, 8))->setMinute(rand(0, 59))->setSecond(rand(0, 59)),
-                    'updated_at' => $currentDate,
-                ]);
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ];
+            }
 
-                $recordsCount++;
-                $currentDate->addDay();
+            // Chunk insert for better database performance
+            foreach (array_chunk($attendanceData, 100) as $chunk) {
+                Attendance::insert($chunk);
+                $recordsCount += count($chunk);
             }
         }
 
-        $this->command->info('Seeding attendance history successfully completed!');
+        $this->command->info("Successfully simulated {$recordsCount} attendance entries for 1 month!");
     }
 }

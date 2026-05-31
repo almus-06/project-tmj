@@ -170,7 +170,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] font-bold text-slate-400 block uppercase tracking-wider">Total Hari Kerja (Fit)</span>
-                            <span class="font-black text-slate-800">{{ $totalPresent }} Hari</span>
+                            <span class="font-black text-slate-800">{{ $totalFit }} Hari</span>
                         </div>
                     </div>
                 </div>
@@ -208,51 +208,38 @@
     </div>
 
     {{-- Summary Statistics --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        {{-- Total Hadir --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        {{-- Total Entri --}}
+        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-indigo-500">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Total Entri</p>
+            <p class="text-4xl font-black text-indigo-600 tabular-nums">{{ $totalCount }}</p>
+        </div>
+
+        {{-- Total Fit To Work --}}
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-green-500">
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Total Hadir (Fit)</p>
-            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $totalPresent }}</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Total Fit To Work</p>
+            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $totalFit }}</p>
         </div>
 
-        {{-- Izin / Cuti --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-sky-500">
-            <div class="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-1">Izin / Cuti</p>
-            <p class="text-4xl font-black text-sky-600 tabular-nums">{{ $totalPermission + $totalLeave }}</p>
-            <p class="text-[9px] text-slate-400 font-bold uppercase mt-2">Izin: {{ $totalPermission }} | Cuti: {{ $totalLeave }}</p>
-        </div>
-
-        {{-- Luar Radius --}}
+        {{-- Total Unfit --}}
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-amber-500">
             <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Absen Luar Area</p>
-            <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $outsideRadiusCount }}</p>
-        </div>
-
-        {{-- Fake GPS --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-purple-500">
-            <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-purple-600 mb-1">Flag Fake GPS</p>
-            <p class="text-4xl font-black text-purple-600 tabular-nums">{{ $fakeGpsCount }}</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Total Unfit</p>
+            <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $totalUnfit }}</p>
         </div>
     </div>
 
@@ -324,16 +311,7 @@
                     </div>
                 </div>
 
-                <div class="w-[180px]">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Status Kehadiran</label>
-                    <select name="status"
-                            class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500">
-                        <option value="">Semua Status</option>
-                        <option value="Hadir" {{ request('status') == 'Hadir' ? 'selected' : '' }}>Hadir (Fit)</option>
-                        <option value="Izin" {{ request('status') == 'Izin' ? 'selected' : '' }}>Izin</option>
-                        <option value="Cuti" {{ request('status') == 'Cuti' ? 'selected' : '' }}>Cuti</option>
-                    </select>
-                </div>
+
 
                 <div class="flex gap-2 min-w-[200px]">
                     <button type="submit" class="flex-1 bg-indigo-600 text-white text-[10px] font-black px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-all shadow-sm uppercase tracking-wider">Terapkan</button>
@@ -362,61 +340,47 @@
                             <span class="text-[10px] text-slate-400 font-bold block">{{ $row->created_at->format('H:i') }}</span>
                         </div>
                         <div class="flex flex-col gap-1 items-end">
-                            @if($row->presence_status === 'Hadir')
-                                <span class="status-chip badge-hadir">✓ Hadir</span>
-                            @elseif($row->presence_status === 'Izin')
-                                <span class="status-chip badge-izin">ℹ Izin</span>
+                            @if($row->fit_status === 'Fit')
+                                <span class="text-[9px] bg-emerald-50 px-1.5 py-0.5 rounded font-black text-emerald-600 border border-emerald-100">✓ FIT</span>
                             @else
-                                <span class="status-chip badge-absent">✗ Cuti</span>
-                            @endif
-                            
-                            @if($row->presence_status === 'Hadir')
-                                @if($row->fit_status === 'Fit')
-                                    <span class="text-[9px] bg-emerald-50 px-1.5 py-0.5 rounded font-black text-emerald-600 border border-emerald-100">FIT</span>
-                                @else
-                                    <span class="text-[9px] bg-amber-50 px-1.5 py-0.5 rounded font-black text-amber-600 border border-amber-100">UNFIT</span>
-                                @endif
+                                <span class="text-[9px] bg-amber-50 px-1.5 py-0.5 rounded font-black text-amber-600 border border-amber-100">✗ UNFIT</span>
                             @endif
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 my-3 text-[11px]">
-                        @if($row->presence_status === 'Hadir')
-                            <div>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Verifikasi Foto</span>
-                                @if($row->photo_path)
-                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $employee->name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative overflow-hidden rounded w-12 h-12 border border-slate-200 mt-1 block">
-                                        <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover" alt="Selfie">
-                                    </button>
-                                @else
-                                    <span class="font-bold text-slate-500 block mt-1">—</span>
-                                @endif
+                        <div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Verifikasi Foto</span>
+                            @if($row->photo_path)
+                                <button type="button" 
+                                    data-img="{{ asset('storage/' . $row->photo_path) }}"
+                                    data-name="{{ $employee->name }}"
+                                    data-time="{{ $row->created_at->format('d M Y H:i') }}"
+                                    data-project="{{ $row->project->name ?? '—' }}"
+                                    data-distance="{{ $row->distance_from_project }}"
+                                    data-inside="{{ $row->is_inside_radius }}"
+                                    onclick="showPhotoModalFromElement(this)" 
+                                    class="relative overflow-hidden rounded w-12 h-12 border border-slate-200 mt-1 block">
+                                    <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover" alt="Selfie">
+                                </button>
+                            @else
+                                <span class="font-bold text-slate-500 block mt-1">—</span>
+                            @endif
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Health Indicators</span>
+                            <div class="flex flex-col gap-0.5 font-bold text-slate-600 mt-1">
+                                <span>BP: {{ $row->blood_pressure }}</span>
+                                <span>SpO2: {{ $row->spo2 }}%</span>
+                                <span>Temp: {{ $row->temperature }}°C</span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Health Indicators</span>
-                                <div class="flex flex-col gap-0.5 font-bold text-slate-600 mt-1">
-                                    <span>BP: {{ $row->blood_pressure }}</span>
-                                    <span>SpO2: {{ $row->spo2 }}%</span>
-                                    <span>Temp: {{ $row->temperature }}°C</span>
-                                </div>
-                            </div>
-                        @endif
+                        </div>
                     </div>
 
                     <div class="border-t border-slate-100 pt-2 flex justify-between items-center text-[10px]">
                         <div>
                             <span class="font-bold text-slate-500">Penempatan:</span>
                             <span class="font-black text-slate-700">{{ $row->project->name ?? '—' }}</span>
-                        </div>
-                        <div class="flex flex-col items-end gap-1">
-                            @if($row->is_fake_gps_suspected)
-                                <span class="status-chip bg-purple-50 text-purple-700 border-purple-200 py-0.5">🚩 Fake GPS</span>
-                            @endif
-                            @if($row->is_inside_radius === true)
-                                <span class="text-emerald-600 font-bold">📍 Dalam Radius</span>
-                            @elseif($row->is_inside_radius === false)
-                                <span class="text-red-500 font-bold">⚠ Luar Radius ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -434,10 +398,8 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Foto</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Fit Status</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Vital Metrics</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Geo Radius</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -449,7 +411,15 @@
                             </td>
                             <td class="px-5 py-2">
                                 @if($row->photo_path)
-                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $employee->name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-8 h-8 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
+                                    <button type="button" 
+                                        data-img="{{ asset('storage/' . $row->photo_path) }}"
+                                        data-name="{{ $employee->name }}"
+                                        data-time="{{ $row->created_at->format('d M Y H:i') }}"
+                                        data-project="{{ $row->project->name ?? '—' }}"
+                                        data-distance="{{ $row->distance_from_project }}"
+                                        data-inside="{{ $row->is_inside_radius }}"
+                                        onclick="showPhotoModalFromElement(this)" 
+                                        class="relative group cursor-pointer overflow-hidden rounded-lg w-8 h-8 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
                                         <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Selfie">
                                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -468,56 +438,23 @@
                                 {{ $row->shift }}
                             </td>
                             <td class="px-5 py-2">
-                                @if($row->presence_status === 'Hadir')
-                                    <span class="status-chip badge-hadir" style="padding-top: 2px; padding-bottom: 2px;">✓ Hadir</span>
-                                @elseif($row->presence_status === 'Izin')
-                                    <span class="status-chip badge-izin" style="padding-top: 2px; padding-bottom: 2px;">ℹ Izin</span>
+                                @if($row->fit_status === 'Fit')
+                                    <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
                                 @else
-                                    <span class="status-chip badge-absent" style="padding-top: 2px; padding-bottom: 2px;">✗ Cuti</span>
+                                    <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
                                 @endif
                             </td>
                             <td class="px-5 py-2">
-                                @if($row->presence_status === 'Hadir')
-                                    @if($row->fit_status === 'Fit')
-                                        <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
-                                    @else
-                                        <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
-                                    @endif
-                                @else
-                                    <span class="text-slate-300 font-bold">—</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-2">
-                                @if($row->presence_status === 'Hadir')
-                                    <div class="flex items-center gap-1 text-[9px] tabular-nums font-bold text-slate-600">
-                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
-                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
-                                        <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
-                                    </div>
-                                @else
-                                    <span class="text-slate-300 font-bold">—</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-2">
-                                <div class="flex flex-col gap-1 items-start">
-                                    <div class="flex flex-wrap gap-1">
-                                        @if($row->is_fake_gps_suspected)
-                                            <span class="status-chip bg-purple-50 text-purple-700 border-purple-200">🚩 Fake GPS</span>
-                                        @endif
-                                        @if($row->is_inside_radius === true)
-                                            <span class="status-chip badge-hadir">📍 Dalam Area</span>
-                                        @elseif($row->is_inside_radius === false)
-                                            <span class="status-chip badge-absent">⚠ Luar Area ({{ $row->distance_from_project >= 1000 ? round($row->distance_from_project / 1000, 1) . 'km' : round($row->distance_from_project) . 'm' }})</span>
-                                        @else
-                                            <span class="text-[10px] text-slate-300 font-bold">—</span>
-                                        @endif
-                                    </div>
+                                <div class="flex items-center gap-1 text-[9px] tabular-nums font-bold text-slate-600">
+                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
+                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
+                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-12 text-center">
+                            <td colspan="6" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -603,6 +540,24 @@
     </div>
 
     <script>
+        // Move modal to body so 'fixed' positioning is never broken by parent transforms/overflow
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('photo_modal');
+            if (modal) document.body.appendChild(modal);
+        });
+
+        // Helper function for safer onClick handlers
+        function showPhotoModalFromElement(el) {
+            showPhotoModal(
+                el.dataset.img,
+                el.dataset.name,
+                el.dataset.time,
+                el.dataset.project,
+                el.dataset.distance,
+                el.dataset.inside
+            );
+        }
+
         function showPhotoModal(imgUrl, employeeName, timeStr, projectName, distance, isInsideRadius) {
             const modal = document.getElementById('photo_modal');
             const modalImg = document.getElementById('modal_photo_img');
@@ -684,8 +639,18 @@
                     if (!mapEl) return;
 
                     // Project locations and tracking coordinates
-                    const projects = {!! json_encode($projectLocations) !!};
-                    const trackingPoints = {!! json_encode($attendancePoints) !!};
+                    const projects = @json($projectLocations);
+                    const trackingPoints = @json($attendancePoints);
+
+                    // Utility to prevent DOM XSS
+                    const escapeHtml = (unsafe) => {
+                        return (unsafe || '').toString()
+                            .replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&#039;");
+                    };
 
                     // Default coordinates (first project or central point)
                     let defaultLat = -2.62330530;
@@ -738,27 +703,45 @@
 
                         L.marker([project.lat, project.lng], { icon: projectIcon })
                             .addTo(map)
-                            .bindPopup(`<div class="p-2 font-sans"><p class="font-black text-xs text-indigo-700">${project.name}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Geofence Radius: ${project.radius}m</p></div>`);
+                            .bindPopup(`<div class="p-2 font-sans"><p class="font-black text-xs text-indigo-700">${escapeHtml(project.name)}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Geofence Radius: ${project.radius}m</p></div>`);
                         
                         bounds.push([project.lat, project.lng]);
                     });
 
                     // 2. Draw Employee Login Markers & Track Path coordinates
                     const pathCoordinates = [];
+                    const locationCounts = {};
 
                     trackingPoints.forEach(function(point, index) {
-                        pathCoordinates.push([point.lat, point.lng]);
-                        bounds.push([point.lat, point.lng]);
+                        const locKey = `${point.lat.toFixed(5)}_${point.lng.toFixed(5)}`;
+                        if (!locationCounts[locKey]) locationCounts[locKey] = 0;
+                        const count = locationCounts[locKey];
+                        locationCounts[locKey]++;
+                        
+                        let offsetLat = point.lat;
+                        let offsetLng = point.lng;
+                        
+                        // Jika ada titik yang sama persis, geser sedikit melingkar (seperti bunga/spiderfy) agar tidak tumpang tindih
+                        if (count > 0) {
+                            // ~0.00008 derajat setara ~9 meter
+                            const radius = 0.00008 * Math.ceil(count / 6); 
+                            const angle = count * (Math.PI / 3); // Berjarak 60 derajat antar titik
+                            offsetLat += radius * Math.sin(angle);
+                            offsetLng += radius * Math.cos(angle);
+                        }
+
+                        pathCoordinates.push([offsetLat, offsetLng]);
+                        bounds.push([offsetLat, offsetLng]);
 
                         // Determine theme & icon based on GPS status
                         let markerBg = 'bg-emerald-500';
                         let markerBorder = 'border-white';
                         let svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
 
-                        if (point.fake) {
-                            markerBg = 'bg-purple-600';
-                            svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-                        } else if (!point.inside) {
+                        // Fake GPS indicator temporarily disabled
+                        // if (point.fake) { ... }
+                        
+                        if (!point.inside) {
                             markerBg = 'bg-amber-500';
                             svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
                         }
@@ -801,21 +784,16 @@
                                             ${point.inside ? '📍 Dalam Area' : `⚠ Luar Area (${point.dist >= 1000 ? (point.dist/1000).toFixed(1)+'km' : Math.round(point.dist)+'m'})`}
                                         </span>
                                     </div>
-                                    ${point.fake ? `
-                                    <div class="text-center mt-2 py-0.5 bg-red-50 text-red-600 font-black rounded text-[9px] border border-red-200 uppercase tracking-wide">
-                                        🚩 SUSPECTED FAKE GPS
-                                    </div>
-                                    ` : ''}
                                     ` : ''}
                                     <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 mt-1.5">
                                         <span class="text-slate-400 font-bold uppercase text-[8px]">Project Area:</span>
-                                        <span class="font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[9px]">${point.project_name}</span>
+                                        <span class="font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[9px]">${escapeHtml(point.project_name)}</span>
                                     </div>
                                 </div>
                             </div>
                         `;
 
-                        L.marker([point.lat, point.lng], { icon: trackingIcon })
+                        L.marker([offsetLat, offsetLng], { icon: trackingIcon })
                             .addTo(map)
                             .bindPopup(popupContent);
                     });
@@ -837,13 +815,17 @@
                     }
                 }
 
-                // Execute on initial load
-                initMap();
-
-                // Re-run if SWUP completes a page swap
-                if (window.swup) {
-                    window.swup.hooks.on('content:replace', initMap);
+                // Polling to wait for Leaflet to load since SWUP might inject it asynchronously
+                function checkAndInitMap() {
+                    if (typeof L === 'undefined') {
+                        setTimeout(checkAndInitMap, 50);
+                        return;
+                    }
+                    initMap();
                 }
+
+                // Execute
+                checkAndInitMap();
             })();
         </script>
     @endpush

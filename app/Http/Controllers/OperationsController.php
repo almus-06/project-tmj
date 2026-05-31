@@ -41,8 +41,6 @@ class OperationsController extends Controller
         }
         if ($request->filled('project'))
             $query->whereHas('project', fn($q) => $q->where('name', $request->project));
-        if ($request->filled('status'))
-            $query->where('presence_status', $request->status);
 
         if ($request->input('export') == 'csv') {
             return $this->exportCsv($query->get(), 'attendances');
@@ -72,12 +70,11 @@ class OperationsController extends Controller
             $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
         }
 
-        $hadirCount = $statsBase->clone()->where('presence_status', 'Hadir')->count();
-        $unfitCount = $statsBase->clone()->where('fit_status', 'Unfit')->count();
-        $leaveCount = $statsBase->clone()->whereIn('presence_status', ['Cuti', 'Izin'])->count();
-        $alphaCount = $statsBase->clone()->whereIn('presence_status', ['Tidak Hadir', 'Tanpa Keterangan'])->count();
+        $totalCount = (clone $statsBase)->count();
+        $fitCount = (clone $statsBase)->where('fit_status', 'Fit')->count();
+        $unfitCount = (clone $statsBase)->where('fit_status', 'Unfit')->count();
 
-        return view('admin.admin-attendance', compact('attendances', 'hadirCount', 'unfitCount', 'leaveCount', 'alphaCount'));
+        return view('admin.admin-attendance', compact('attendances', 'totalCount', 'fitCount', 'unfitCount'));
     }
 
     public function units(Request $request)
@@ -213,11 +210,11 @@ class OperationsController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function employeeHistory($employee_id, \Illuminate\Http\Request $request)
+    public function employeeHistory($employee_id, Request $request)
     {
         $employee = \App\Models\Employee::findOrFail($employee_id);
 
-        $query = \App\Models\Attendance::where('employee_id', $employee_id)
+        $query = Attendance::where('employee_id', $employee_id)
             ->with(['project']);
 
         // Filter tanggal jika diisi
@@ -232,16 +229,16 @@ class OperationsController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
-        // Filter status jika diisi
-        if ($request->filled('status')) {
-            $query->where('presence_status', $request->status);
-        }
+
+
+        // Clone the base query before modifying it for pagination
+        $mapQuery = clone $query;
 
         // Ambil data untuk riwayat (paginated)
         $attendances = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         // Ambil semua data koordinat yang cocok dengan filter untuk plotting di peta (urut kronologis asc)
-        $mapAttendances = $query->clone()
+        $mapAttendances = $mapQuery
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->orderBy('created_at', 'asc')
@@ -253,13 +250,10 @@ class OperationsController extends Controller
             ->get();
 
         // Hitung stats karyawan ini
-        $allAttendances = \App\Models\Attendance::where('employee_id', $employee_id)->get();
-        $totalPresent = $allAttendances->where('presence_status', 'Hadir')->count();
-        $totalPermission = $allAttendances->where('presence_status', 'Izin')->count();
-        $totalLeave = $allAttendances->where('presence_status', 'Cuti')->count();
-
-        $outsideRadiusCount = $allAttendances->where('presence_status', 'Hadir')->where('is_inside_radius', false)->count();
-        $fakeGpsCount = $allAttendances->where('is_fake_gps_suspected', true)->count();
+        $allAttendances = Attendance::where('employee_id', $employee_id)->get();
+        $totalCount = $allAttendances->count();
+        $totalFit = $allAttendances->where('fit_status', 'Fit')->count();
+        $totalUnfit = $allAttendances->where('fit_status', 'Unfit')->count();
 
         // Rata-rata parameter kesehatan
         $hadirLogs = $allAttendances->where('presence_status', 'Hadir');
@@ -271,11 +265,9 @@ class OperationsController extends Controller
             'attendances',
             'mapAttendances',
             'projects',
-            'totalPresent',
-            'totalPermission',
-            'totalLeave',
-            'outsideRadiusCount',
-            'fakeGpsCount',
+            'totalCount',
+            'totalFit',
+            'totalUnfit',
             'avgTemp',
             'avgSpo2'
         ));

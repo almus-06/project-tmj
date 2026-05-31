@@ -499,38 +499,8 @@
         @enderror
     </div>
 
-    {{-- ══════════════════════════════════════════ --}}
-    {{-- SECTION 4: Status Kehadiran               --}}
-    {{-- ══════════════════════════════════════════ --}}
-    <div class="section-card">
-        <p class="section-label green">
-            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-            </svg>
-            Status Kehadiran
-        </p>
-        <input type="hidden" id="presence_status" name="presence_status" value="{{ old('presence_status', 'Hadir') }}">
-        <div class="grid grid-cols-3 gap-2.5" id="presence_group">
-            @foreach([
-                'Hadir'            => ['icon'=>'','color'=>'green','bg'=>'#F0FDF4','border'=>'#22C55E','text'=>'#15803D'],
-                'Izin'             => ['icon'=>'','color'=>'amber','bg'=>'#FFFBEB','border'=>'#F59E0B','text'=>'#B45309'],
-                'Cuti'             => ['icon'=>'','color'=>'sky','bg'=>'#F0F9FF','border'=>'#38BDF8','text'=>'#0369A1'],
-                'Tidak Hadir'      => ['icon'=>'','color'=>'red','bg'=>'#FFF1F2','border'=>'#F87171','text'=>'#B91C1C'],
-                'Tanpa Keterangan' => ['icon'=>'','color'=>'rose','bg'=>'#FFF1F2','border'=>'#FB7185','text'=>'#BE123C'],
-            ] as $status => $cfg)
-            <button type="button" onclick="selectPresence('{{ $status }}')"
-                data-status="{{ $status }}"
-                data-bg="{{ $cfg['bg'] }}"
-                data-border="{{ $cfg['border'] }}"
-                data-text="{{ $cfg['text'] }}"
-                class="presence-btn flex flex-col items-center gap-1 py-3.5">
-                <span class="text-xl leading-none">{{ $cfg['icon'] }}</span>
-                <span class="text-center font-bold leading-tight" style="font-size:0.65rem;">{{ $status }}</span>
-            </button>
-            @endforeach
-        </div>
-        @error('presence_status') <span class="text-xs text-red-500 font-semibold mt-2 block">{{ $message }}</span> @enderror
-    </div>
+    {{-- Hidden presence status input defaulting to 'Hadir' --}}
+    <input type="hidden" id="presence_status" name="presence_status" value="Hadir">
 
 </form>
 
@@ -803,20 +773,8 @@ function requestGeolocation() {
 
 // ─── Presence Toggle ──────────────────────────────────────────────────
 function selectPresence(val) {
-    document.getElementById('presence_status').value = val;
-    document.querySelectorAll('.presence-btn').forEach(btn => {
-        btn.style.background = '#F8FAFC';
-        btn.style.borderColor = '#E2E8F0';
-        btn.style.color = '#94A3B8';
-        btn.querySelector('span:last-child').style.color = '#94A3B8';
-    });
-    const active = document.querySelector(`.presence-btn[data-status="${val}"]`);
-    if (active) {
-        active.style.background = active.dataset.bg;
-        active.style.borderColor = active.dataset.border;
-        active.style.color = active.dataset.text;
-        active.querySelector('span:last-child').style.color = active.dataset.text;
-    }
+    const input = document.getElementById('presence_status');
+    if (input) input.value = val;
 }
 
 // ─── Fit Toggle ───────────────────────────────────────────────────────
