@@ -237,8 +237,20 @@ class OperationsController extends Controller
             $query->where('presence_status', $request->status);
         }
 
-        // Ambil data untuk riwayat
+        // Ambil data untuk riwayat (paginated)
         $attendances = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+
+        // Ambil semua data koordinat yang cocok dengan filter untuk plotting di peta (urut kronologis asc)
+        $mapAttendances = $query->clone()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Ambil data project koordinat untuk menggambar radius geofence
+        $projects = \App\Models\Project::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get();
 
         // Hitung stats karyawan ini
         $allAttendances = \App\Models\Attendance::where('employee_id', $employee_id)->get();
@@ -257,6 +269,8 @@ class OperationsController extends Controller
         return view('admin.employee-history', compact(
             'employee',
             'attendances',
+            'mapAttendances',
+            'projects',
             'totalPresent',
             'totalPermission',
             'totalLeave',

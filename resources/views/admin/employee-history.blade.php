@@ -256,6 +256,59 @@
         </div>
     </div>
 
+    {{-- Leaflet CSS --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Custom Premium Overrides for Leaflet Popups */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px !important;
+            border: 1px solid #E2E8F0 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .leaflet-popup-content {
+            margin: 0 !important;
+        }
+        .leaflet-popup-close-button {
+            top: 8px !important;
+            right: 8px !important;
+            color: #94A3B8 !important;
+            font-size: 14px !important;
+        }
+    </style>
+
+    {{-- Map Section --}}
+    <div class="card-industrial p-5 mb-8 bg-white relative">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600"></div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
+            <div>
+                <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    Peta Pelacakan Koordinat & Rute Absensi
+                </h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Visualisasi rute kronologis dan radius geofence project secara interaktif</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                {{-- Map Legend --}}
+                <div class="flex items-center gap-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white shadow-sm"></span> Dalam Area</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-white shadow-sm"></span> Luar Area</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-600 border border-white shadow-sm"></span> Fake GPS</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-600 border border-white shadow-sm"></span> Project</span>
+                </div>
+                
+                <span class="px-2.5 py-1.5 rounded bg-indigo-50 text-[10px] font-black text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                    {{ $mapAttendances->count() }} Titik Koordinat
+                </span>
+            </div>
+        </div>
+
+        {{-- Leaflet Map Container --}}
+        <div id="attendance-map" style="height: 400px;" class="w-full rounded-xl border border-slate-200/80 shadow-inner overflow-hidden z-10"></div>
+    </div>
+
     {{-- Filter Panel --}}
     <div class="card-industrial p-5 mb-8 bg-slate-50/50">
         <form method="GET" action="{{ route('workforce.attendance.employee', $employee->id) }}">
@@ -595,4 +648,203 @@
             }
         });
     </script>
+
+    @php
+        $projectLocations = $projects->map(fn($p) => [
+            'name' => $p->name,
+            'lat' => (float)$p->latitude,
+            'lng' => (float)$p->longitude,
+            'radius' => (int)$p->radius_meters,
+        ]);
+
+        $attendancePoints = $mapAttendances->map(fn($a) => [
+            'lat' => (float)$a->latitude,
+            'lng' => (float)$a->longitude,
+            'date' => $a->created_at->format('d M Y H:i'),
+            'shift' => $a->shift,
+            'status' => $a->presence_status,
+            'fit' => $a->fit_status,
+            'inside' => (bool)$a->is_inside_radius,
+            'fake' => (bool)$a->is_fake_gps_suspected,
+            'bp' => $a->blood_pressure,
+            'spo2' => (int)$a->spo2,
+            'temp' => (float)$a->temperature,
+            'dist' => (float)$a->distance_from_project,
+            'project_name' => $a->project->name ?? '—'
+        ]);
+    @endphp
+
+    @push('scripts')
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            (function() {
+                // Wait for both DOM and Leaflet to load
+                function initMap() {
+                    const mapEl = document.getElementById('attendance-map');
+                    if (!mapEl) return;
+
+                    // Project locations and tracking coordinates
+                    const projects = {!! json_encode($projectLocations) !!};
+                    const trackingPoints = {!! json_encode($attendancePoints) !!};
+
+                    // Default coordinates (first project or central point)
+                    let defaultLat = -2.62330530;
+                    let defaultLng = 121.36963140;
+
+                    if (projects.length > 0) {
+                        defaultLat = projects[0].lat;
+                        defaultLng = projects[0].lng;
+                    } else if (trackingPoints.length > 0) {
+                        defaultLat = trackingPoints[trackingPoints.length - 1].lat;
+                        defaultLng = trackingPoints[trackingPoints.length - 1].lng;
+                    }
+
+                    // Initialize Map
+                    const map = L.map('attendance-map', {
+                        scrollWheelZoom: false
+                    }).setView([defaultLat, defaultLng], 14);
+
+                    // OpenStreetMap tiles
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    // Add Easy Zoom/Scroll handlers
+                    map.on('focus', function() { map.scrollWheelZoom.enable(); });
+                    map.on('blur', function() { map.scrollWheelZoom.disable(); });
+
+                    const bounds = [];
+
+                    // 1. Draw Project Geofences (Radius boundaries)
+                    projects.forEach(function(project) {
+                        // Circle geofence boundary
+                        L.circle([project.lat, project.lng], {
+                            color: '#6366F1',
+                            fillColor: '#818CF8',
+                            fillOpacity: 0.15,
+                            radius: project.radius,
+                            weight: 2,
+                            dashArray: '4, 4'
+                        }).addTo(map);
+
+                        // Custom Project HQ Marker
+                        const projectIcon = L.divIcon({
+                            className: 'custom-leaflet-icon',
+                            html: `<div class="w-8 h-8 rounded-xl bg-indigo-600 border-2 border-white shadow-md flex items-center justify-center text-white"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2-2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        });
+
+                        L.marker([project.lat, project.lng], { icon: projectIcon })
+                            .addTo(map)
+                            .bindPopup(`<div class="p-2 font-sans"><p class="font-black text-xs text-indigo-700">${project.name}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Geofence Radius: ${project.radius}m</p></div>`);
+                        
+                        bounds.push([project.lat, project.lng]);
+                    });
+
+                    // 2. Draw Employee Login Markers & Track Path coordinates
+                    const pathCoordinates = [];
+
+                    trackingPoints.forEach(function(point, index) {
+                        pathCoordinates.push([point.lat, point.lng]);
+                        bounds.push([point.lat, point.lng]);
+
+                        // Determine theme & icon based on GPS status
+                        let markerBg = 'bg-emerald-500';
+                        let markerBorder = 'border-white';
+                        let svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+
+                        if (point.fake) {
+                            markerBg = 'bg-purple-600';
+                            svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                        } else if (!point.inside) {
+                            markerBg = 'bg-amber-500';
+                            svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                        }
+
+                        // Create custom marker with index/number to show chronological order
+                        const trackingIcon = L.divIcon({
+                            className: 'custom-leaflet-icon',
+                            html: `<div class="w-6 h-6 rounded-full ${markerBg} border-2 ${markerBorder} shadow flex items-center justify-center text-white relative">
+                                ${svgInner}
+                                <span class="absolute -top-2 -right-2 bg-slate-800 text-white font-black text-[7px] px-1 rounded-full border border-slate-700">${index + 1}</span>
+                            </div>`,
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+
+                        // Build Rich Popup Card
+                        const popupContent = `
+                            <div class="p-3 font-sans" style="min-width: 220px;">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                                    <span class="font-black text-xs text-slate-800">${point.date}</span>
+                                    <span class="text-[8px] bg-slate-100 px-1.5 py-0.5 rounded font-black text-slate-500 uppercase">${point.shift}</span>
+                                </div>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Kehadiran:</span>
+                                        <span class="font-black ${point.status === 'Hadir' ? 'text-emerald-600' : 'text-rose-600'}">${point.status}</span>
+                                    </div>
+                                    ${point.status === 'Hadir' ? `
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Kondisi FTW:</span>
+                                        <span class="font-black ${point.fit === 'Fit' ? 'text-emerald-600' : 'text-amber-600'}">${point.fit}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Metrik Vital:</span>
+                                        <span class="font-black text-slate-700">${point.bp} | SpO2 ${point.spo2}% | ${point.temp}°C</span>
+                                    </div>
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px] mt-0.5">Akurasi GPS:</span>
+                                        <span class="font-black ${point.inside ? 'text-emerald-600' : 'text-rose-600'} text-right">
+                                            ${point.inside ? '📍 Dalam Area' : `⚠ Luar Area (${point.dist >= 1000 ? (point.dist/1000).toFixed(1)+'km' : Math.round(point.dist)+'m'})`}
+                                        </span>
+                                    </div>
+                                    ${point.fake ? `
+                                    <div class="text-center mt-2 py-0.5 bg-red-50 text-red-600 font-black rounded text-[9px] border border-red-200 uppercase tracking-wide">
+                                        🚩 SUSPECTED FAKE GPS
+                                    </div>
+                                    ` : ''}
+                                    ` : ''}
+                                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 mt-1.5">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Project Area:</span>
+                                        <span class="font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[9px]">${point.project_name}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        L.marker([point.lat, point.lng], { icon: trackingIcon })
+                            .addTo(map)
+                            .bindPopup(popupContent);
+                    });
+
+                    // 3. Draw Polyline (Breadcrumb tracing route) connecting the points chronologically
+                    if (pathCoordinates.length > 1) {
+                        L.polyline(pathCoordinates, {
+                            color: '#6366F1',
+                            weight: 3,
+                            opacity: 0.65,
+                            dashArray: '6, 6',
+                            lineJoin: 'round'
+                        }).addTo(map);
+                    }
+
+                    // 4. Auto-center and fit bounds so all markers/geofences are perfectly framed
+                    if (bounds.length > 0) {
+                        map.fitBounds(bounds, { padding: [40, 40] });
+                    }
+                }
+
+                // Execute on initial load
+                initMap();
+
+                // Re-run if SWUP completes a page swap
+                if (window.swup) {
+                    window.swup.hooks.on('content:replace', initMap);
+                }
+            })();
+        </script>
+    @endpush
 @endsection
