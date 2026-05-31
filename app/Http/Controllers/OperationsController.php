@@ -164,7 +164,7 @@ class OperationsController extends Controller
 
         $columns = [];
         if ($type == 'attendances') {
-            $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status', 'Latitude', 'Longitude', 'Jarak (m)', 'Dalam Area', 'Akurasi (m)', 'Kecepatan (m/s)', 'Fake GPS'];
+            $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status', 'Latitude', 'Longitude', 'Jarak (m)', 'Dalam Area', 'Akurasi (m)', 'Kecepatan (m/s)', 'Fake GPS', 'Link Foto'];
         } else {
             $columns = ['Date', 'Unit', 'Operator', 'Project', 'Status', 'Location', 'Damage', 'HM', 'KM'];
         }
@@ -192,6 +192,7 @@ class OperationsController extends Controller
                         $row->accuracy !== null ? round($row->accuracy, 2) : '-',
                         $row->speed !== null ? round($row->speed, 2) : '-',
                         $row->is_fake_gps_suspected ? 'Ya' : 'Tidak',
+                        $row->photo_path ? url('storage/' . $row->photo_path) : '-',
                     ]);
                 } else {
                     fputcsv($file, [
@@ -210,5 +211,59 @@ class OperationsController extends Controller
             fclose($file);
         };
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function employeeHistory($employee_id, \Illuminate\Http\Request $request)
+    {
+        $employee = \App\Models\Employee::findOrFail($employee_id);
+
+        $query = \App\Models\Attendance::where('employee_id', $employee_id)
+            ->with(['project']);
+
+        // Filter tanggal jika diisi
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Filter status jika diisi
+        if ($request->filled('status')) {
+            $query->where('presence_status', $request->status);
+        }
+
+        // Ambil data untuk riwayat
+        $attendances = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+
+        // Hitung stats karyawan ini
+        $allAttendances = \App\Models\Attendance::where('employee_id', $employee_id)->get();
+        $totalPresent = $allAttendances->where('presence_status', 'Hadir')->count();
+        $totalPermission = $allAttendances->where('presence_status', 'Izin')->count();
+        $totalLeave = $allAttendances->where('presence_status', 'Cuti')->count();
+
+        $outsideRadiusCount = $allAttendances->where('presence_status', 'Hadir')->where('is_inside_radius', false)->count();
+        $fakeGpsCount = $allAttendances->where('is_fake_gps_suspected', true)->count();
+
+        // Rata-rata parameter kesehatan
+        $hadirLogs = $allAttendances->where('presence_status', 'Hadir');
+        $avgTemp = $hadirLogs->avg('temperature');
+        $avgSpo2 = $hadirLogs->avg('spo2');
+
+        return view('admin.employee-history', compact(
+            'employee',
+            'attendances',
+            'totalPresent',
+            'totalPermission',
+            'totalLeave',
+            'outsideRadiusCount',
+            'fakeGpsCount',
+            'avgTemp',
+            'avgSpo2'
+        ));
     }
 }

@@ -29,7 +29,8 @@ class Attendance extends Model
         'heading',
         'speed',
         'device_info',
-        'is_fake_gps_suspected'
+        'is_fake_gps_suspected',
+        'photo_path'
     ];
 
     protected $casts = [

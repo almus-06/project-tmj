@@ -15,6 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/operations-dashboard/workforce-attendance', [\App\Http\Controllers\OperationsController::class, 'attendances'])
         ->middleware('role:admin,supervisor,hrd')
         ->name('workforce.attendance');
+
+    Route::get('/operations-dashboard/workforce-attendance/employee/{employee_id}', [\App\Http\Controllers\OperationsController::class, 'employeeHistory'])
+        ->middleware('role:admin,supervisor,hrd')
+        ->name('workforce.attendance.employee');
         
     Route::get('/operations-dashboard/fleet-management', [\App\Http\Controllers\OperationsController::class, 'units'])
         ->middleware('role:admin,supervisor,workshop')

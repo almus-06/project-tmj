@@ -46,9 +46,10 @@
 @endsection
 
 @section('content')
-<form action="{{ route('attendance.store') }}" method="POST" id="attendanceForm">
+<form action="{{ route('attendance.store') }}" method="POST" id="attendanceForm" enctype="multipart/form-data">
     @csrf
     <input type="hidden" id="attendance_code_field" name="attendance_code">
+    <input type="hidden" id="photo_base64" name="photo_base64">
     <input type="hidden" id="geo_latitude" name="latitude">
     <input type="hidden" id="geo_longitude" name="longitude">
     <input type="hidden" id="geo_accuracy" name="accuracy">
@@ -416,6 +417,86 @@
                 Ulangi
             </button>
         </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════ --}}
+    {{-- SECTION 3.5: Foto Verifikasi              --}}
+    {{-- ══════════════════════════════════════════ --}}
+    <div class="section-card" id="photo_section">
+        <p class="section-label green">
+            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Foto Verifikasi <span class="text-red-400">*</span>
+        </p>
+
+        {{-- Camera Live Feed & Preview Box --}}
+        <div class="relative overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50 flex flex-col items-center justify-center min-h-[220px]" id="camera_container">
+            {{-- Video Stream for WebRTC --}}
+            <video id="camera_video" autoplay playsinline muted class="w-full h-56 object-cover hidden rounded-2xl"></video>
+            
+            {{-- Static Preview Image of Captured Photo --}}
+            <img id="camera_preview_img" class="w-full h-56 object-cover hidden rounded-2xl" alt="Preview Foto">
+
+            {{-- Placeholder View before camera started --}}
+            <div id="camera_placeholder" class="flex flex-col items-center justify-center p-6 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+                    <svg class="w-8 h-8 text-slate-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                    </svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ambil Foto Selfie</p>
+                <p class="text-[10px] text-slate-400 font-medium max-w-[250px] leading-relaxed">Silakan aktifkan kamera depan untuk memvalidasi kehadiran Anda.</p>
+            </div>
+
+            {{-- Fallback File Upload Area (if camera blocked or WebRTC unsupported) --}}
+            <div id="fallback_container" class="hidden flex flex-col items-center justify-center p-6 text-center w-full">
+                <input type="file" id="photo_file" name="photo_file" accept="image/*" capture="user" class="hidden" onchange="handleFallbackFile(this)">
+                <div class="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-3 border border-amber-100">
+                    <svg class="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Kamera Web Ditolak / Tidak Didukung</p>
+                <p class="text-[10px] text-slate-400 font-medium max-w-[250px] leading-relaxed mb-3">Tekan tombol di bawah untuk mengambil foto selfie menggunakan aplikasi kamera bawaan perangkat Anda.</p>
+                <button type="button" onclick="triggerFallbackUpload()" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-amber-600 transition-all">
+                    BUKA KAMERA PERANGKAT
+                </button>
+            </div>
+        </div>
+
+        {{-- Camera Action Buttons --}}
+        <div class="mt-3 flex gap-2" id="camera_controls">
+            <button type="button" id="btn_start_camera" onclick="startCamera()" class="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                AKTIFKAN KAMERA
+            </button>
+            <button type="button" id="btn_capture_photo" onclick="capturePhoto()" class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hidden">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                </svg>
+                AMBIL FOTO
+            </button>
+            <button type="button" id="btn_retake_photo" onclick="retakePhoto()" class="flex-1 py-3 px-4 rounded-xl border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hidden">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                FOTO ULANG
+            </button>
+        </div>
+        
+        @error('photo_file') 
+            <span class="text-xs text-red-500 font-semibold mt-2 block flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ $message }}
+            </span> 
+        @enderror
     </div>
 
     {{-- ══════════════════════════════════════════ --}}
@@ -823,6 +904,178 @@ function checkBP(input) {
     }
 }
 
+// ─── Camera / Photo Verification ──────────────────────────────────────
+let cameraStream = null;
+
+function startCamera() {
+    const video = document.getElementById('camera_video');
+    const placeholder = document.getElementById('camera_placeholder');
+    const previewImg = document.getElementById('camera_preview_img');
+    const fallbackContainer = document.getElementById('fallback_container');
+    const btnStart = document.getElementById('btn_start_camera');
+    const btnCapture = document.getElementById('btn_capture_photo');
+    const btnRetake = document.getElementById('btn_retake_photo');
+
+    // Reset previous states
+    previewImg.classList.add('hidden');
+    previewImg.src = '';
+    document.getElementById('photo_base64').value = '';
+    document.getElementById('photo_file').value = '';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn("WebRTC tidak didukung oleh browser ini.");
+        switchToFallback();
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+        } 
+    })
+    .then(function(stream) {
+        cameraStream = stream;
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        fallbackContainer.classList.add('hidden');
+        
+        btnStart.classList.add('hidden');
+        btnCapture.classList.remove('hidden');
+        btnRetake.classList.add('hidden');
+    })
+    .catch(function(err) {
+        console.error("Gagal mengakses kamera: ", err);
+        switchToFallback();
+    });
+}
+
+function capturePhoto() {
+    const video = document.getElementById('camera_video');
+    const previewImg = document.getElementById('camera_preview_img');
+    const btnCapture = document.getElementById('btn_capture_photo');
+    const btnRetake = document.getElementById('btn_retake_photo');
+
+    if (!video.srcObject) return;
+
+    // Create canvas dynamically for compression
+    const canvas = document.createElement('canvas');
+    const maxW = 640;
+    const maxH = 480;
+    
+    let w = video.videoWidth || 640;
+    let h = video.videoHeight || 480;
+
+    // Maintain aspect ratio, downscale if too large
+    if (w > maxW) {
+        h = Math.round((h * maxW) / w);
+        w = maxW;
+    } else if (h > maxH) {
+        w = Math.round((w * maxH) / h);
+        h = maxH;
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext('2d');
+    
+    // Draw mirrored image if capturing from front camera (looks more natural)
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, w, h);
+    
+    // Reset translation
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Compress to JPEG with 0.8 quality (~50KB-100KB)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    
+    // Store in hidden field
+    document.getElementById('photo_base64').value = dataUrl;
+    
+    // Set preview
+    previewImg.src = dataUrl;
+    previewImg.classList.remove('hidden');
+    video.classList.add('hidden');
+
+    // Controls
+    btnCapture.classList.add('hidden');
+    btnRetake.classList.remove('hidden');
+
+    // Stop camera stream to save power and battery
+    stopCameraStream();
+}
+
+function retakePhoto() {
+    // Clear inputs
+    document.getElementById('photo_base64').value = '';
+    document.getElementById('photo_file').value = '';
+    document.getElementById('camera_preview_img').src = '';
+    document.getElementById('camera_preview_img').classList.add('hidden');
+
+    // If fallback is currently visible or active, keep it visible
+    const fallbackContainer = document.getElementById('fallback_container');
+    if (!fallbackContainer.classList.contains('hidden')) {
+        document.getElementById('camera_placeholder').classList.add('hidden');
+        document.getElementById('btn_retake_photo').classList.add('hidden');
+        return;
+    }
+
+    // Restart camera
+    startCamera();
+}
+
+function stopCameraStream() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+}
+
+function switchToFallback() {
+    stopCameraStream();
+    document.getElementById('camera_video').classList.add('hidden');
+    document.getElementById('camera_preview_img').classList.add('hidden');
+    document.getElementById('camera_placeholder').classList.add('hidden');
+    document.getElementById('fallback_container').classList.remove('hidden');
+    
+    document.getElementById('btn_start_camera').classList.add('hidden');
+    document.getElementById('btn_capture_photo').classList.add('hidden');
+    document.getElementById('btn_retake_photo').classList.add('hidden');
+}
+
+function triggerFallbackUpload() {
+    document.getElementById('photo_file').click();
+}
+
+function handleFallbackFile(input) {
+    const file = input.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert("File terlalu besar. Maksimum ukuran file foto adalah 5MB.");
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById('camera_preview_img');
+            previewImg.src = e.target.result;
+            previewImg.classList.remove('hidden');
+            document.getElementById('camera_placeholder').classList.add('hidden');
+            document.getElementById('photo_base64').value = '';
+
+            document.getElementById('btn_start_camera').classList.add('hidden');
+            document.getElementById('btn_capture_photo').classList.add('hidden');
+            document.getElementById('btn_retake_photo').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 // ─── Submit Loading & Validation ──────────────────────────────────────
 document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     // Validate Hidden Fields
@@ -832,6 +1085,18 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
     if (!employeeId || !projectId) {
         e.preventDefault();
         alert('PERINGATAN: Mohon pastikan Anda telah memilih Nama Karyawan dan Project dari daftar yang tersedia.');
+        return false;
+    }
+
+    // Photo validation for presence status 'Hadir'
+    const presenceStatus = document.getElementById('presence_status').value;
+    const photoBase64 = document.getElementById('photo_base64').value;
+    const photoFile = document.getElementById('photo_file').files.length;
+    
+    if (presenceStatus === 'Hadir' && !photoBase64 && !photoFile) {
+        e.preventDefault();
+        alert('PERINGATAN: Foto verifikasi selfie wajib diambil sebelum mengirim absensi.');
+        document.getElementById('photo_section').scrollIntoView({ behavior: 'smooth' });
         return false;
     }
 

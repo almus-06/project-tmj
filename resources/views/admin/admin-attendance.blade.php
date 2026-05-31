@@ -253,12 +253,20 @@
                     {{-- Row 1: Avatar + Name + Time --}}
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="avatar text-[10px] font-black flex-shrink-0"
-                                style="background: {{ $colorPair[0] }}; color: {{ $colorPair[1] }}; border-radius: 6px;">
-                                {{ $initials }}
-                            </div>
+                            @if($row->photo_path)
+                                <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-10 h-10 border border-slate-200 flex-shrink-0 bg-slate-100">
+                                    <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover" alt="Selfie">
+                                </button>
+                            @else
+                                <div class="avatar text-[10px] font-black flex-shrink-0"
+                                    style="background: {{ $colorPair[0] }}; color: {{ $colorPair[1] }}; border-radius: 6px;">
+                                    {{ $initials }}
+                                </div>
+                            @endif
                             <div class="min-w-0">
-                                <p class="font-black text-slate-900 text-sm leading-tight truncate">{{ $name }}</p>
+                                <a href="{{ route('workforce.attendance.employee', $row->employee_id) }}" class="font-black text-slate-900 hover:text-indigo-600 transition-colors text-sm leading-tight truncate block">
+                                    {{ $name }}
+                                </a>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
                                     {{ $row->employee->position ?? '—' }}
                                 </p>
@@ -351,6 +359,7 @@
                 <thead>
                     <tr class="bg-slate-50/80 border-b border-slate-100">
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Personel</th>
+                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Foto</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Kehadiran</th>
@@ -377,11 +386,27 @@
                                         {{ $initials }}
                                     </div>
                                     <div>
-                                        <p class="font-black text-slate-900 leading-tight">{{ $name }}</p>
+                                        <a href="{{ route('workforce.attendance.employee', $row->employee_id) }}" class="font-black text-slate-900 hover:text-indigo-600 transition-colors leading-tight block">
+                                            {{ $name }}
+                                        </a>
                                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
                                             {{ $row->employee->position ?? '—' }}</p>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                @if($row->photo_path)
+                                    <button type="button" onclick="showPhotoModal('{{ asset('storage/' . $row->photo_path) }}', '{{ $name }}', '{{ $row->created_at->format('d M Y H:i') }}', '{{ $row->project->name ?? '—' }}', '{{ $row->distance_from_project }}', '{{ $row->is_inside_radius }}')" class="relative group cursor-pointer overflow-hidden rounded-lg w-10 h-10 border border-slate-200 hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-100">
+                                        <img src="{{ asset('storage/' . $row->photo_path) }}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Selfie">
+                                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                @else
+                                    <span class="text-xs text-slate-400 font-medium">No Photo</span>
+                                @endif
                             </td>
                             <td class="px-5 py-4">
                                 <p class="text-xs font-bold text-slate-700">{{ $row->project->name ?? '—' }}</p>
@@ -497,5 +522,89 @@
             </div>
         </div>
     </div>
+
+    {{-- Premium Photo View Modal --}}
+    <div id="photo_modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" onclick="hidePhotoModal()">
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col" onclick="event.stopPropagation()">
+            {{-- Modal Header --}}
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                    <h3 id="modal_employee_name" class="font-black text-slate-900 text-sm leading-tight">Nama Karyawan</h3>
+                    <p id="modal_attendance_time" class="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Tanggal & Waktu</p>
+                </div>
+                <button type="button" onclick="hidePhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            {{-- Photo Body --}}
+            <div class="relative bg-slate-950 aspect-square flex items-center justify-center overflow-hidden">
+                <img id="modal_photo_img" src="" class="w-full h-full object-cover" alt="Foto Verifikasi Full">
+            </div>
+
+            {{-- Metadata Info Footer --}}
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-600 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-400 uppercase text-[9px] tracking-wider">Project Area</span>
+                    <span id="modal_project_name" class="font-black text-slate-800 bg-slate-200 px-2 py-0.5 rounded text-[10px]">Project</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-400 uppercase text-[9px] tracking-wider">Status Jarak</span>
+                    <span id="modal_distance_status" class="font-bold text-[10px] px-2 py-0.5 rounded">Status Jarak</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPhotoModal(imgUrl, employeeName, timeStr, projectName, distance, isInsideRadius) {
+            const modal = document.getElementById('photo_modal');
+            const modalImg = document.getElementById('modal_photo_img');
+            const modalName = document.getElementById('modal_employee_name');
+            const modalTime = document.getElementById('modal_attendance_time');
+            const modalProject = document.getElementById('modal_project_name');
+            const modalDistance = document.getElementById('modal_distance_status');
+
+            modalImg.src = imgUrl;
+            modalName.innerText = employeeName;
+            modalTime.innerText = timeStr;
+            modalProject.innerText = projectName;
+
+            // Parse isInsideRadius and distance
+            const radiusInside = isInsideRadius === '1' || isInsideRadius === 'true' || isInsideRadius === true;
+            if (radiusInside) {
+                modalDistance.innerText = '📍 Dalam Radius Area';
+                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
+            } else if (distance && distance !== '') {
+                const distVal = parseFloat(distance);
+                const formattedDist = distVal >= 1000 ? (distVal / 1000).toFixed(1) + 'km' : Math.round(distVal) + 'm';
+                modalDistance.innerText = '⚠ Luar Radius (' + formattedDist + ')';
+                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200';
+            } else {
+                modalDistance.innerText = '📍 —';
+                modalDistance.className = 'font-bold text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-500';
+            }
+
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.firstElementChild.classList.remove('scale-95');
+            modal.firstElementChild.classList.add('scale-100');
+        }
+
+        function hidePhotoModal() {
+            const modal = document.getElementById('photo_modal');
+            modal.classList.add('pointer-events-none', 'opacity-0');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+        }
+
+        // Close on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hidePhotoModal();
+            }
+        });
+    </script>
 
 @endsection

@@ -57,10 +57,60 @@ class AttendanceController extends Controller
             'heading' => 'nullable|numeric',
             'speed' => 'nullable|numeric',
             'device_info' => 'nullable|string',
+            'photo_file' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'photo_base64' => 'nullable|string',
         ], [
             'employee_id.unique' => 'Karyawan ini sudah melakukan absensi hari ini.',
             'attendance_code.unique' => 'Terjadi benturan kode absensi (Duplicate). Silakan coba lagi.',
+            'photo_file.image' => 'File yang diunggah harus berupa gambar.',
+            'photo_file.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
+            'photo_file.max' => 'Ukuran gambar maksimal 5MB.',
         ]);
+
+        // 1.5 Validate that photo is taken if presence_status is 'Hadir'
+        if ($request->input('presence_status') === 'Hadir' && !$request->hasFile('photo_file') && !$request->filled('photo_base64')) {
+            return back()->withErrors(['photo_file' => 'Foto verifikasi wajib diambil untuk status kehadiran Hadir.'])->withInput();
+        }
+
+        // Process and save verification photo
+        $photoPath = null;
+        if ($request->hasFile('photo_file')) {
+            $file = $request->file('photo_file');
+            $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $photoPath = $file->storeAs('attendance_photos', $filename, 'public');
+        } elseif ($request->filled('photo_base64')) {
+            $base64Data = $request->input('photo_base64');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $ext = strtolower($type[1]);
+                if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                    return back()->withErrors(['photo_file' => 'Format gambar base64 tidak didukung.'])->withInput();
+                }
+            } else {
+                $ext = 'jpg';
+            }
+
+            $imageData = base64_decode($base64Data);
+            if ($imageData === false) {
+                return back()->withErrors(['photo_file' => 'Gagal mendekode data gambar.'])->withInput();
+            }
+
+            // Security: verify mime type of the decoded content
+            $finfo = finfo_open();
+            $mimeType = finfo_buffer($finfo, $imageData, FILEINFO_MIME_TYPE);
+            finfo_close($finfo);
+
+            if (!str_starts_with($mimeType, 'image/')) {
+                return back()->withErrors(['photo_file' => 'Data yang dikirimkan bukan merupakan gambar yang valid.'])->withInput();
+            }
+
+            $filename = Str::random(40) . '.' . $ext;
+            \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('attendance_photos');
+            \Illuminate\Support\Facades\Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
+            $photoPath = 'attendance_photos/' . $filename;
+        }
+
+        $validated['photo_path'] = $photoPath;
 
         // Basic Anti-Fake GPS Detection
         $isFakeGps = false;
