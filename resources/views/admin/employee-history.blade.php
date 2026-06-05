@@ -279,10 +279,10 @@
             
             <div class="flex flex-wrap items-center gap-3">
                 {{-- Map Legend --}}
-                <div class="flex items-center gap-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white shadow-sm"></span> Dalam Area</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-white shadow-sm"></span> Luar Area</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-600 border border-white shadow-sm"></span> Fake GPS</span>
+                <div class="flex flex-wrap items-center gap-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white shadow-sm"></span> Masuk (Dalam Area)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 border border-white shadow-sm"></span> Masuk (Luar Area)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-white shadow-sm"></span> Pulang (Clock-Out)</span>
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-600 border border-white shadow-sm"></span> Project</span>
                 </div>
                 
@@ -340,6 +340,11 @@
                             <span class="text-[10px] text-slate-400 font-bold block">{{ $row->created_at->format('H:i') }}</span>
                         </div>
                         <div class="flex flex-col gap-1 items-end">
+                            @if($row->type === 'clock_out')
+                                <span class="text-[9px] bg-amber-500 px-1.5 py-0.5 rounded font-black text-white border border-amber-600">PULANG</span>
+                            @else
+                                <span class="text-[9px] bg-emerald-600 px-1.5 py-0.5 rounded font-black text-white border border-emerald-700">MASUK</span>
+                            @endif
                             @if($row->fit_status === 'Fit')
                                 <span class="text-[9px] bg-emerald-50 px-1.5 py-0.5 rounded font-black text-emerald-600 border border-emerald-100">✓ FIT</span>
                             @else
@@ -398,6 +403,7 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Foto</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
+                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Tipe</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Fit Status</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Vital Metrics</th>
                     </tr>
@@ -438,6 +444,13 @@
                                 {{ $row->shift }}
                             </td>
                             <td class="px-5 py-2">
+                                @if($row->type === 'clock_out')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-amber-500 text-white border-amber-600">PULANG</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-2">
                                 @if($row->fit_status === 'Fit')
                                     <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
                                 @else
@@ -454,7 +467,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-12 text-center">
+                            <td colspan="7" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -625,7 +638,8 @@
             'spo2' => (int)$a->spo2,
             'temp' => (float)$a->temperature,
             'dist' => (float)$a->distance_from_project,
-            'project_name' => $a->project->name ?? '—'
+            'project_name' => $a->project->name ?? '—',
+            'type' => $a->type
         ]);
     @endphp
 
@@ -733,17 +747,17 @@
                         pathCoordinates.push([offsetLat, offsetLng]);
                         bounds.push([offsetLat, offsetLng]);
 
-                        // Determine theme & icon based on GPS status
+                        // Determine theme & icon based on GPS status & type
                         let markerBg = 'bg-emerald-500';
                         let markerBorder = 'border-white';
                         let svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
 
-                        // Fake GPS indicator temporarily disabled
-                        // if (point.fake) { ... }
-                        
-                        if (!point.inside) {
+                        if (point.type === 'clock_out') {
                             markerBg = 'bg-amber-500';
-                            svgInner = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                            svgInner = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>`;
+                        } else if (!point.inside) {
+                            markerBg = 'bg-rose-500';
+                            svgInner = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
                         }
 
                         // Create custom marker with index/number to show chronological order
@@ -765,6 +779,10 @@
                                     <span class="text-[8px] bg-slate-100 px-1.5 py-0.5 rounded font-black text-slate-500 uppercase">${point.shift}</span>
                                 </div>
                                 <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Tipe:</span>
+                                        <span class="font-black ${point.type === 'clock_out' ? 'text-amber-600' : 'text-emerald-600'}">${point.type === 'clock_out' ? 'PULANG (CLOCK-OUT)' : 'MASUK (CLOCK-IN)'}</span>
+                                    </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-slate-400 font-bold uppercase text-[8px]">Kehadiran:</span>
                                         <span class="font-black ${point.status === 'Hadir' ? 'text-emerald-600' : 'text-rose-600'}">${point.status}</span>

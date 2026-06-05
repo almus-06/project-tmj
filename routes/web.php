@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
 use App\Http\Controllers\AttendanceController;
 
 Route::get('/attendance', [AttendanceController::class, 'create'])->name('attendance.create');
+Route::get('/attendance/check-status', [AttendanceController::class, 'checkStatus'])->middleware('throttle:30,1')->name('attendance.check-status');
 Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('throttle:attendance')->name('attendance.store');
 Route::get('/attendance/success', function () {
     return view('forms.attendance-success');

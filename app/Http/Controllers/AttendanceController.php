@@ -27,39 +27,100 @@ class AttendanceController extends Controller
         return view('forms.attendance', compact('employees', 'projects'));
     }
 
+    public function checkStatus(Request $request)
+    {
+        $employeeId = $request->query('employee_id');
+        $fp = $request->query('device_fingerprint', '');
+
+        // Validasi input secara manual (karena ini dipanggil via AJAX, bukan form biasa)
+        if (!$employeeId || !is_numeric($employeeId)) {
+            return response()->json(['status' => 'no_employee']);
+        }
+        $employeeId = (int) $employeeId;
+        $fp = substr(trim($fp), 0, 100); // Sanitize dan batasi panjang
+        $today = now()->toDateString();
+
+        // 1. Cek apakah perangkat (fingerprint) sudah digunakan oleh karyawan lain hari ini
+        if ($fp) {
+            $otherEmployeeUsed = Attendance::whereDate('created_at', $today)
+                ->where('employee_id', '!=', $employeeId)
+                ->where('device_fingerprint', $fp)
+                ->exists();
+
+            if ($otherEmployeeUsed) {
+                return response()->json([
+                    'status' => 'device_blocked',
+                    'message' => 'Perangkat ini sudah digunakan untuk absensi karyawan lain hari ini.'
+                ]);
+            }
+        }
+
+        // 2. Cek status absensi karyawan ini hari ini
+        $attendances = Attendance::whereDate('created_at', $today)
+            ->where('employee_id', $employeeId)
+            ->pluck('type'); // Hanya ambil kolom 'type' untuk efisiensi
+
+        if ($attendances->isEmpty()) {
+            return response()->json(['status' => 'can_clock_in']);
+        }
+
+        $hasClockOut = $attendances->contains('clock_out');
+        if ($hasClockOut || $attendances->count() >= 2) {
+            return response()->json([
+                'status' => 'already_completed',
+                'message' => 'Karyawan ini sudah menyelesaikan absensi masuk & pulang untuk hari ini.'
+            ]);
+        }
+
+        $hasClockIn = $attendances->contains('clock_in');
+        if ($hasClockIn) {
+            return response()->json(['status' => 'can_clock_out']);
+        }
+
+        return response()->json(['status' => 'can_clock_in']);
+    }
+
     public function store(Request $request)
     {
+        $isClockOut = $request->input('type') === 'clock_out';
+
         // 1. Set temporary attendance code to pass validation
         $request->merge(['attendance_code' => 'TMP-' . Str::uuid()]);
 
-        $validated = $request->validate([
+        $rules = [
+            'type' => 'required|in:clock_in,clock_out',
+            'device_fingerprint' => 'required|string|max:100',
             'attendance_code' => 'required|string|unique:attendances,attendance_code',
-            'employee_id' => [
-                'required',
-                'exists:employees,id',
-                // One employee can only submit once per day
-                \Illuminate\Validation\Rule::unique('attendances')->where(function ($query) {
-                    return $query->where('employee_id', request('employee_id'))
-                        ->whereDate('created_at', now()->toDateString());
-                }),
-            ],
-            'presence_status' => 'required|string',
-            'blood_pressure' => ['required', 'regex:/^\d{2,3}\/\d{2,3}$/'],
-            'spo2' => 'required|integer|min:0|max:100',
-            'temperature' => 'required|numeric',
-            'tak' => 'required|boolean',
-            'project_id' => 'required|exists:projects,id',
-            'fit_status' => 'required|string|in:Fit,Unfit',
+            'employee_id' => 'required|integer|exists:employees,id',
+            'project_id' => 'required|integer|exists:projects,id',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'accuracy' => 'nullable|numeric',
             'altitude' => 'nullable|numeric',
             'heading' => 'nullable|numeric',
             'speed' => 'nullable|numeric',
-            'device_info' => 'nullable|string',
+            'device_info' => 'nullable|string|max:500',
             'photo_file' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'photo_base64' => 'nullable|string',
-        ], [
+        ];
+
+        if (!$isClockOut) {
+            $rules['presence_status'] = 'required|string|in:Hadir,Sakit,Izin';
+            $rules['blood_pressure'] = ['required', 'regex:/^\d{2,3}\/\d{2,3}$/'];
+            $rules['spo2'] = 'required|integer|min:0|max:100';
+            $rules['temperature'] = 'required|numeric|min:30|max:45';
+            $rules['tak'] = 'required|boolean';
+            $rules['fit_status'] = 'required|string|in:Fit,Unfit';
+        } else {
+            $rules['presence_status'] = 'nullable|string';
+            $rules['blood_pressure'] = 'nullable|string';
+            $rules['spo2'] = 'nullable|integer';
+            $rules['temperature'] = 'nullable|numeric';
+            $rules['tak'] = 'nullable|boolean';
+            $rules['fit_status'] = 'nullable|string';
+        }
+
+        $validated = $request->validate($rules, [
             'employee_id.unique' => 'Karyawan ini sudah melakukan absensi hari ini.',
             'attendance_code.unique' => 'Terjadi benturan kode absensi (Duplicate). Silakan coba lagi.',
             'photo_file.image' => 'File yang diunggah harus berupa gambar.',
@@ -67,47 +128,68 @@ class AttendanceController extends Controller
             'photo_file.max' => 'Ukuran gambar maksimal 5MB.',
         ]);
 
-        // 1.5 Validate that photo is taken if presence_status is 'Hadir'
-        if ($request->input('presence_status') === 'Hadir' && !$request->hasFile('photo_file') && !$request->filled('photo_base64')) {
-            return back()->withErrors(['photo_file' => 'Foto verifikasi wajib diambil untuk status kehadiran Hadir.'])->withInput();
+        // Sanitize fingerprint
+        $fp = substr(trim($validated['device_fingerprint']), 0, 100);
+        $validated['device_fingerprint'] = $fp;
+        $validated['ip_address'] = $request->ip();
+
+        if ($isClockOut) {
+            $validated['presence_status'] = 'Pulang';
+            $validated['blood_pressure'] = '—';
+            $validated['spo2'] = 0;
+            $validated['temperature'] = 0;
+            $validated['tak'] = true;
+            $validated['fit_status'] = 'Fit';
         }
 
         // Process and save verification photo
         $photoPath = null;
-        if ($request->hasFile('photo_file')) {
-            $file = $request->file('photo_file');
-            $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
-            $photoPath = $file->storeAs('attendance_photos', $filename, 'public');
-        } elseif ($request->filled('photo_base64')) {
-            $base64Data = $request->input('photo_base64');
-            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
-                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
-                $ext = strtolower($type[1]);
-                if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                    return back()->withErrors(['photo_file' => 'Format gambar base64 tidak didukung.'])->withInput();
+        if (!$isClockOut) {
+            // Validate that photo is taken if presence_status is 'Hadir'
+            if ($request->input('presence_status') === 'Hadir' && !$request->hasFile('photo_file') && !$request->filled('photo_base64')) {
+                return back()->withErrors(['photo_file' => 'Foto verifikasi wajib diambil untuk status kehadiran Hadir.'])->withInput();
+            }
+
+            if ($request->hasFile('photo_file')) {
+                $file = $request->file('photo_file');
+                $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+                $photoPath = $file->storeAs('attendance_photos', $filename, 'public');
+            } elseif ($request->filled('photo_base64')) {
+                $base64Data = $request->input('photo_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                    $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                    $ext = strtolower($type[1]);
+                    if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                        return back()->withErrors(['photo_file' => 'Format gambar base64 tidak didukung.'])->withInput();
+                    }
+                } else {
+                    $ext = 'jpg';
                 }
-            } else {
-                $ext = 'jpg';
+
+                $imageData = base64_decode($base64Data);
+                if ($imageData === false) {
+                    return back()->withErrors(['photo_file' => 'Gagal mendekode data gambar.'])->withInput();
+                }
+
+                // Security: verify mime type of the decoded content
+                $finfo = finfo_open();
+                $mimeType = finfo_buffer($finfo, $imageData, FILEINFO_MIME_TYPE);
+                finfo_close($finfo);
+
+                if (!str_starts_with($mimeType, 'image/')) {
+                    return back()->withErrors(['photo_file' => 'Data yang dikirimkan bukan merupakan gambar yang valid.'])->withInput();
+                }
+
+                // Security: limit base64 image size (max ~4MB decoded)
+                if (strlen($imageData) > 4 * 1024 * 1024) {
+                    return back()->withErrors(['photo_file' => 'Ukuran gambar terlalu besar (maks 4MB).'])->withInput();
+                }
+
+                $filename = Str::random(40) . '.' . $ext;
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('attendance_photos');
+                \Illuminate\Support\Facades\Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
+                $photoPath = 'attendance_photos/' . $filename;
             }
-
-            $imageData = base64_decode($base64Data);
-            if ($imageData === false) {
-                return back()->withErrors(['photo_file' => 'Gagal mendekode data gambar.'])->withInput();
-            }
-
-            // Security: verify mime type of the decoded content
-            $finfo = finfo_open();
-            $mimeType = finfo_buffer($finfo, $imageData, FILEINFO_MIME_TYPE);
-            finfo_close($finfo);
-
-            if (!str_starts_with($mimeType, 'image/')) {
-                return back()->withErrors(['photo_file' => 'Data yang dikirimkan bukan merupakan gambar yang valid.'])->withInput();
-            }
-
-            $filename = Str::random(40) . '.' . $ext;
-            \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('attendance_photos');
-            \Illuminate\Support\Facades\Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
-            $photoPath = 'attendance_photos/' . $filename;
         }
 
         $validated['photo_path'] = $photoPath;
@@ -152,10 +234,10 @@ class AttendanceController extends Controller
         if (!empty($validated['latitude']) && !empty($validated['longitude']) && $project) {
             if ($project->latitude && $project->longitude) {
                 $distance = $this->haversineDistance(
-                    $validated['latitude'],
-                    $validated['longitude'],
-                    $project->latitude,
-                    $project->longitude
+                    (float)$validated['latitude'],
+                    (float)$validated['longitude'],
+                    (float)$project->latitude,
+                    (float)$project->longitude
                 );
 
                 $validated['distance_from_project'] = round($distance, 2);
@@ -163,21 +245,75 @@ class AttendanceController extends Controller
             }
         }
 
-        // 2. Insert atomically
-        $record = Attendance::create($validated);
+        // ═══ ATOMIC INSERT with Pessimistic Locking ═══
+        // Menggunakan DB::transaction + lockForUpdate untuk mencegah race condition
+        // ketika banyak user submit bersamaan pada detik yang sama.
+        $today = now()->toDateString();
+        $employeeId = (int) $validated['employee_id'];
 
-        // 3. Update the unique code using a daily sequence counter (Race-condition free)
-        $todayPrefix = 'FitToWork-TMJ-' . $record->created_at->format('dmy');
-        $startOfDay = $record->created_at->copy()->startOfDay();
-        
-        $dailySequence = Attendance::where('created_at', '>=', $startOfDay)
-                                   ->where('id', '<=', $record->id)
-                                   ->count();
-                                   
-        $sequence = str_pad($dailySequence, 4, '0', STR_PAD_LEFT);
-        $finalCode = $todayPrefix . '-' . $sequence;
+        try {
+            $record = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $isClockOut, $today, $employeeId, $fp) {
+                // Re-check anti-fraud INSIDE transaction dengan pessimistic lock
+                // Ini mencegah TOCTOU (Time-Of-Check-Time-Of-Use) race condition
+                if ($fp) {
+                    $deviceBlocked = Attendance::whereDate('created_at', $today)
+                        ->where('employee_id', '!=', $employeeId)
+                        ->where('device_fingerprint', $fp)
+                        ->lockForUpdate()
+                        ->exists();
 
-        $record->update(['attendance_code' => $finalCode]);
+                    if ($deviceBlocked) {
+                        throw new \Exception('DEVICE_BLOCKED');
+                    }
+                }
+
+                // Re-check status absensi INSIDE transaction
+                $existingTypes = Attendance::whereDate('created_at', $today)
+                    ->where('employee_id', $employeeId)
+                    ->lockForUpdate()
+                    ->pluck('type');
+
+                if (!$isClockOut) {
+                    if ($existingTypes->contains('clock_in')) {
+                        throw new \Exception('ALREADY_CLOCKED_IN');
+                    }
+                } else {
+                    if (!$existingTypes->contains('clock_in')) {
+                        throw new \Exception('NO_CLOCK_IN');
+                    }
+                    if ($existingTypes->contains('clock_out')) {
+                        throw new \Exception('ALREADY_CLOCKED_OUT');
+                    }
+                }
+
+                $rec = Attendance::create($validated);
+
+                // Update the unique code using a daily sequence counter
+                $todayPrefix = 'FitToWork-TMJ-' . $rec->created_at->format('dmy');
+                $startOfDay = $rec->created_at->copy()->startOfDay();
+                
+                $dailySequence = Attendance::where('created_at', '>=', $startOfDay)
+                                           ->where('id', '<=', $rec->id)
+                                           ->count();
+                                           
+                $sequence = str_pad($dailySequence, 4, '0', STR_PAD_LEFT);
+                $finalCode = $todayPrefix . '-' . $sequence;
+
+                $rec->update(['attendance_code' => $finalCode]);
+
+                return $rec;
+            });
+        } catch (\Exception $e) {
+            $errorMessages = [
+                'DEVICE_BLOCKED' => 'Perangkat ini sudah digunakan untuk absensi karyawan lain hari ini.',
+                'ALREADY_CLOCKED_IN' => 'Karyawan ini sudah melakukan absensi masuk (Clock-In) hari ini.',
+                'NO_CLOCK_IN' => 'Karyawan harus melakukan absensi masuk (Clock-In) terlebih dahulu sebelum pulang.',
+                'ALREADY_CLOCKED_OUT' => 'Karyawan ini sudah melakukan absensi pulang (Clock-Out) hari ini.',
+            ];
+
+            $msg = $errorMessages[$e->getMessage()] ?? 'Terjadi kesalahan saat menyimpan absensi. Silakan coba lagi.';
+            return back()->withErrors(['employee_id' => $msg])->withInput();
+        }
 
         return redirect()->route('attendance.success')
             ->with('submission_id', $record->attendance_code)

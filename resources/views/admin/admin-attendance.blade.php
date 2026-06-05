@@ -210,6 +210,12 @@
 
                     {{-- Row 2: Status Badges --}}
                     <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                        @if($row->type === 'clock_out')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap bg-amber-500 text-white border-amber-600">PULANG (CLOCK-OUT)</span>
+                        @else
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK (CLOCK-IN)</span>
+                        @endif
+
                         {{-- Fit Status --}}
                         @if($row->fit_status === 'Fit')
                             <span class="status-chip badge-fit">✓ Fit</span>
@@ -268,6 +274,7 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Personel</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
+                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Tipe</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Metrik FTW</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Hasil FTW</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Waktu</th>
@@ -305,6 +312,13 @@
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
                             </td>
                             <td class="px-5 py-2">
+                                @if($row->type === 'clock_out')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-amber-500 text-white border-amber-600">PULANG</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-2">
                                 <div class="flex items-center gap-1 tabular-nums">
                                     <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
                                     <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
@@ -325,7 +339,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-12 text-center">
+                            <td colspan="7" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

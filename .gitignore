@@ -1,5 +1,5 @@
 /node_modules
-/public/build
+# /public/build  ← Di-track agar VPS tidak perlu Node.js
 /public/hot
 /public/storage
 /storage/*.key

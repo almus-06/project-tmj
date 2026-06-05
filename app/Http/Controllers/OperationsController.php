@@ -12,8 +12,8 @@ class OperationsController extends Controller
 {
     public function dashboard()
     {
-        $fitCount = Attendance::whereDate('created_at', today())->where('fit_status', 'Fit')->count();
-        $unfitCount = Attendance::whereDate('created_at', today())->where('fit_status', 'Unfit')->count();
+        $fitCount = Attendance::whereDate('created_at', today())->where('type', 'clock_in')->where('fit_status', 'Fit')->count();
+        $unfitCount = Attendance::whereDate('created_at', today())->where('type', 'clock_in')->where('fit_status', 'Unfit')->count();
 
         $latestStatuses = UnitStatus::whereIn('id', function ($query) {
             $query->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
@@ -70,9 +70,9 @@ class OperationsController extends Controller
             $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
         }
 
-        $totalCount = (clone $statsBase)->count();
-        $fitCount = (clone $statsBase)->where('fit_status', 'Fit')->count();
-        $unfitCount = (clone $statsBase)->where('fit_status', 'Unfit')->count();
+        $totalCount = (clone $statsBase)->where('type', 'clock_in')->count();
+        $fitCount = (clone $statsBase)->where('type', 'clock_in')->where('fit_status', 'Fit')->count();
+        $unfitCount = (clone $statsBase)->where('type', 'clock_in')->where('fit_status', 'Unfit')->count();
 
         return view('admin.admin-attendance', compact('attendances', 'totalCount', 'fitCount', 'unfitCount'));
     }

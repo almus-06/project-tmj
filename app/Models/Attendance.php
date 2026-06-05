@@ -11,6 +11,7 @@ class Attendance extends Model
     use HasFactory;
     protected $fillable = [
         'attendance_code',
+        'type',
         'employee_id',
         'project_id',
         'presence_status',
@@ -29,6 +30,8 @@ class Attendance extends Model
         'heading',
         'speed',
         'device_info',
+        'device_fingerprint',
+        'ip_address',
         'is_fake_gps_suspected',
         'photo_path'
     ];

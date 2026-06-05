@@ -4,7 +4,7 @@
 
 @section('header')
 {{-- ═══ INDUSTRIAL HEADER CARD ═══════════════════════════════════════════ --}}
-<div class="w-full max-w-md relative overflow-hidden" style="background: #059669; border-radius: 0 0 20px 20px; border-bottom: 4px solid #047857;">
+<div class="w-full max-w-md relative overflow-hidden" id="header_container" style="background: #059669; border-radius: 0 0 20px 20px; border-bottom: 4px solid #047857;">
 
     {{-- Decorative circles --}}
     <div class="absolute -bottom-6 -left-6 w-32 h-32 rounded-full opacity-10" style="background: #FFFFFF;"></div>
@@ -57,6 +57,9 @@
     <input type="hidden" id="geo_heading" name="heading">
     <input type="hidden" id="geo_speed" name="speed">
     <input type="hidden" id="geo_device_info" name="device_info">
+    <input type="hidden" id="attendance_type" name="type" value="clock_in">
+    <input type="hidden" id="device_fingerprint" name="device_fingerprint">
+    <input type="hidden" id="ip_address" name="ip_address">
 
     {{-- ══════════════════════════════════════════ --}}
     {{-- SECTION 1: Employee Info                  --}}
@@ -84,6 +87,18 @@
                 this.selectedName = emp.name;
                 this.search = '';
                 this.open = false;
+                if (typeof window.checkEmployeeStatus === 'function') {
+                    window.checkEmployeeStatus(emp.id);
+                }
+            },
+            init() {
+                if (this.selectedId) {
+                    this.$nextTick(() => {
+                        if (typeof window.checkEmployeeStatus === 'function') {
+                            window.checkEmployeeStatus(this.selectedId);
+                        }
+                    });
+                }
             }
         }">
             <label for="employee_search_input" class="field-label">
@@ -251,7 +266,7 @@
     {{-- ══════════════════════════════════════════ --}}
     {{-- SECTION 2: Health Check                   --}}
     {{-- ══════════════════════════════════════════ --}}
-    <div class="section-card">
+    <div class="section-card" id="health_check_card">
         <p class="section-label green">
             <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -517,8 +532,20 @@
 </div>
 
 <script>
+// Global States
+let gpsLocked = false;
+let gpsAccuracy = 0;
+
 // ─── Init ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // Generate / Retrieve Device Fingerprint UUID
+    let fp = localStorage.getItem('tmj_device_fp');
+    if (!fp) {
+        fp = 'fp-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('tmj_device_fp', fp);
+    }
+    document.getElementById('device_fingerprint').value = fp;
+
     const now = new Date();
     const dd = String(now.getDate()).padStart(2,'0');
     const mm = String(now.getMonth()+1).padStart(2,'0');
@@ -568,6 +595,7 @@ function setGeoUI(state, accuracy) {
     card.classList.remove('animate-pulse');
 
     if (state === 'loading') {
+        gpsLocked = false;
         if(loadingIcon) {
             loadingIcon.classList.remove('hidden');
             loadingIcon.classList.add('animate-spin'); 
@@ -590,16 +618,10 @@ function setGeoUI(state, accuracy) {
         detailText.style.color = '#3B82F6';
         
         accRow.classList.add('hidden');
-        
-        // Lock Button
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.style.background = '#94A3B8';
-            submitBtn.style.boxShadow = 'none';
-            submitBtn.style.cursor = 'not-allowed';
-            if(submitBtnText) submitBtnText.textContent = 'MENCARI LOKASI...';
-        }
+        validateFormReadyForSubmit();
     } else if (state === 'locked') {
+        gpsLocked = true;
+        gpsAccuracy = accuracy;
         const successIcon = document.getElementById('geo_icon_success');
         if (successIcon) successIcon.classList.remove('hidden');
         
@@ -621,16 +643,9 @@ function setGeoUI(state, accuracy) {
         accRow.classList.remove('hidden');
         accText.textContent = '±' + Math.round(accuracy) + 'm';
         retryBtn.classList.remove('hidden');
-        
-        // Unlock Button
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.style.background = '#059669';
-            submitBtn.style.boxShadow = '0 4px 12px rgba(5,150,105,0.2)';
-            submitBtn.style.cursor = 'pointer';
-            if(submitBtnText) submitBtnText.textContent = 'MASUKAN ABSENSI';
-        }
+        validateFormReadyForSubmit();
     } else if (state === 'error') {
+        gpsLocked = false;
         const errorIcon = document.getElementById('geo_icon_error');
         if (errorIcon) errorIcon.classList.remove('hidden');
         
@@ -643,15 +658,7 @@ function setGeoUI(state, accuracy) {
         accRow.classList.remove('hidden');
         accText.textContent = 'N/A';
         retryBtn.classList.remove('hidden');
-        
-        // Error Button (Stay locked)
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.style.background = '#EF4444'; // Red to indicate error
-            submitBtn.style.boxShadow = 'none';
-            submitBtn.style.cursor = 'not-allowed';
-            if(submitBtnText) submitBtnText.textContent = 'LOKASI GAGAL (COBA LAGI)';
-        }
+        validateFormReadyForSubmit();
     }
 }
 
@@ -1035,6 +1042,23 @@ function handleFallbackFile(input) {
 }
 
 // ─── Submit Loading & Validation ──────────────────────────────────────
+// Helper to toggle 'required' attribute on health fields to prevent silent browser form block
+function toggleHealthValidation(isRequired) {
+    const bpInput = document.getElementById('blood_pressure');
+    const spo2Input = document.getElementById('spo2');
+    const tempInput = document.getElementById('temperature');
+    
+    if (isRequired) {
+        if (bpInput) bpInput.setAttribute('required', '');
+        if (spo2Input) spo2Input.setAttribute('required', '');
+        if (tempInput) tempInput.setAttribute('required', '');
+    } else {
+        if (bpInput) bpInput.removeAttribute('required');
+        if (spo2Input) spo2Input.removeAttribute('required');
+        if (tempInput) tempInput.removeAttribute('required');
+    }
+}
+
 document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     // Validate Hidden Fields
     const employeeId = this.querySelector('input[name="employee_id"]').value;
@@ -1046,16 +1070,21 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
         return false;
     }
 
-    // Photo validation for presence status 'Hadir'
-    const presenceStatus = document.getElementById('presence_status').value;
-    const photoBase64 = document.getElementById('photo_base64').value;
-    const photoFile = document.getElementById('photo_file').files.length;
-    
-    if (presenceStatus === 'Hadir' && !photoBase64 && !photoFile) {
-        e.preventDefault();
-        alert('PERINGATAN: Foto verifikasi selfie wajib diambil sebelum mengirim absensi.');
-        document.getElementById('photo_section').scrollIntoView({ behavior: 'smooth' });
-        return false;
+    const attendanceType = document.getElementById('attendance_type').value;
+
+    // Photo validation for presence status 'Hadir' (Only required for Clock-In)
+    if (attendanceType !== 'clock_out') {
+        const presenceStatus = document.getElementById('presence_status').value;
+        const photoBase64 = document.getElementById('photo_base64').value;
+        const photoFileEl = document.getElementById('photo_file');
+        const photoFile = photoFileEl ? photoFileEl.files.length : 0;
+        
+        if (presenceStatus === 'Hadir' && !photoBase64 && !photoFile) {
+            e.preventDefault();
+            alert('PERINGATAN: Foto verifikasi selfie wajib diambil sebelum mengirim absensi.');
+            document.getElementById('photo_section').scrollIntoView({ behavior: 'smooth' });
+            return false;
+        }
     }
 
     const btn = document.getElementById('submitBtn');
@@ -1065,5 +1094,211 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
     </svg> Menyimpan...`;
 });
+
+// ─── Attendance Status & Theme Control ───────────────────────────────────
+function checkEmployeeStatus(employeeId) {
+    const fp = localStorage.getItem('tmj_device_fp') || '';
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const headerContainer = document.getElementById('header_container');
+    const healthCard = document.getElementById('health_check_card');
+    const photoSection = document.getElementById('photo_section');
+    const attendanceType = document.getElementById('attendance_type');
+    
+    // Clear any existing alert/overlay messages
+    const existingMsg = document.getElementById('status_alert_msg');
+    if (existingMsg) {
+        existingMsg.remove();
+    }
+
+    if (!employeeId) {
+        resetFormState();
+        return;
+    }
+
+    // Set loading state
+    submitBtn.disabled = true;
+    submitBtn.style.background = '#94A3B8';
+    submitBtn.style.boxShadow = 'none';
+    submitBtn.style.cursor = 'wait';
+    submitBtnText.textContent = 'MEMERIKSA STATUS ABSENSI...';
+
+    fetch(`/attendance/check-status?employee_id=${employeeId}&device_fingerprint=${fp}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'device_blocked') {
+                showStatusAlert(data.message, 'error');
+                healthCard.style.display = 'none';
+                photoSection.style.display = 'none';
+                toggleHealthValidation(false);
+                validateFormReadyForSubmit();
+            } else if (data.status === 'already_completed') {
+                showStatusAlert(data.message, 'info');
+                healthCard.style.display = 'none';
+                photoSection.style.display = 'none';
+                toggleHealthValidation(false);
+                validateFormReadyForSubmit();
+            } else if (data.status === 'can_clock_out') {
+                attendanceType.value = 'clock_out';
+                
+                // Ubah Tampilan ke Tema Amber
+                headerContainer.style.background = '#D97706'; // Amber 600
+                headerContainer.style.borderBottomColor = '#B45309'; // Amber 700
+                
+                healthCard.style.display = 'none';
+                photoSection.style.display = 'none';
+                toggleHealthValidation(false);
+                
+                validateFormReadyForSubmit();
+            } else {
+                attendanceType.value = 'clock_in';
+                
+                // Reset ke Tema Hijau
+                headerContainer.style.background = '#059669'; // Green 600
+                headerContainer.style.borderBottomColor = '#047857'; // Green 700
+                
+                healthCard.style.display = 'block';
+                photoSection.style.display = 'block';
+                toggleHealthValidation(true);
+                
+                validateFormReadyForSubmit();
+            }
+        })
+        .catch(err => {
+            console.error('Error checking attendance status:', err);
+            submitBtnText.textContent = 'GAGAL MEMERIKSA STATUS';
+        });
+}
+
+function showStatusAlert(message, type) {
+    const parent = document.getElementById('attendanceForm');
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'status_alert_msg';
+    alertDiv.className = 'section-card p-4 mb-4 rounded-2xl border flex items-start gap-3 transition-all duration-300';
+    
+    if (type === 'error') {
+        alertDiv.style.background = '#FEF2F2';
+        alertDiv.style.borderColor = '#FCA5A5';
+        alertDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 text-red-500" style="display:flex;align-items:center;justify-content:center;">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-black text-red-700 uppercase tracking-widest text-[11px]">KEAMANAN ABSENSI</p>
+                <p class="text-red-500 font-bold text-[10px] mt-0.5">${message}</p>
+            </div>
+        `;
+    } else {
+        alertDiv.style.background = '#EFF6FF';
+        alertDiv.style.borderColor = '#BFDBFE';
+        alertDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-500" style="display:flex;align-items:center;justify-content:center;">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-black text-blue-700 uppercase tracking-widest text-[11px]">ABSENSI SELESAI</p>
+                <p class="text-blue-500 font-bold text-[10px] mt-0.5">${message}</p>
+            </div>
+        `;
+    }
+    
+    // Insert after the first child (Employee Info card)
+    const firstSection = parent.querySelector('.section-card');
+    if (firstSection) {
+        firstSection.after(alertDiv);
+    } else {
+        parent.prepend(alertDiv);
+    }
+    alertDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetFormState() {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const headerContainer = document.getElementById('header_container');
+    const healthCard = document.getElementById('health_check_card');
+    const photoSection = document.getElementById('photo_section');
+    const attendanceType = document.getElementById('attendance_type');
+
+    const existingMsg = document.getElementById('status_alert_msg');
+    if (existingMsg) {
+        existingMsg.remove();
+    }
+
+    attendanceType.value = 'clock_in';
+    headerContainer.style.background = '#059669';
+    headerContainer.style.borderBottomColor = '#047857';
+    healthCard.style.display = 'block';
+    photoSection.style.display = 'block';
+    toggleHealthValidation(true);
+
+    submitBtn.disabled = true;
+    submitBtn.style.background = '#94A3B8';
+    submitBtn.style.boxShadow = 'none';
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtnText.textContent = 'PILIH KARYAWAN...';
+}
+
+function validateFormReadyForSubmit() {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const attendanceType = document.getElementById('attendance_type');
+    const employeeId = document.querySelector('input[name="employee_id"]').value;
+    
+    // Cek status alert (apakah terblokir atau sudah selesai)
+    const existingMsg = document.getElementById('status_alert_msg');
+    const isBlockedOrCompleted = existingMsg !== null;
+
+    if (!employeeId) {
+        submitBtn.disabled = true;
+        submitBtn.style.background = '#94A3B8';
+        submitBtn.style.boxShadow = 'none';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtnText.textContent = 'PILIH KARYAWAN...';
+        return;
+    }
+
+    if (isBlockedOrCompleted) {
+        submitBtn.disabled = true;
+        submitBtn.style.cursor = 'not-allowed';
+        if (existingMsg.innerHTML.includes('KEAMANAN')) {
+            submitBtn.style.background = '#EF4444';
+            submitBtnText.textContent = 'ABSENSI DIBATASI (HP SUDAH DIPAKAI)';
+        } else {
+            submitBtn.style.background = '#94A3B8';
+            submitBtnText.textContent = 'ABSENSI HARI INI SELESAI';
+        }
+        return;
+    }
+
+    if (!gpsLocked) {
+        submitBtn.disabled = true;
+        submitBtn.style.background = '#94A3B8';
+        submitBtn.style.boxShadow = 'none';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtnText.textContent = 'MENCARI LOKASI...';
+        return;
+    }
+
+    // Jika gps locked dan tidak terblokir
+    submitBtn.disabled = false;
+    submitBtn.style.cursor = 'pointer';
+    
+    if (attendanceType.value === 'clock_out') {
+        // Tema Amber
+        submitBtn.style.background = '#D97706'; // Amber 600
+        submitBtn.style.boxShadow = '0 4px 12px rgba(217,119,6,0.2)';
+        submitBtnText.textContent = 'KIRIM ABSEN PULANG (CLOCK-OUT)';
+    } else {
+        // Tema Hijau
+        submitBtn.style.background = '#059669'; // Green 600
+        submitBtn.style.boxShadow = '0 4px 12px rgba(5,150,105,0.2)';
+        submitBtnText.textContent = 'MASUKAN ABSENSI (CLOCK-IN)';
+    }
+}
 </script>
 @endsection
