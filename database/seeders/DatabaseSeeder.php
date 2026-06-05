@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
+        User::create([
             'name' => 'Developer',
             'username' => 'almuss',
             'email' => null,
@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin'
         ]);
 
-        User::factory()->create([
+        User::create([
             'name' => 'Inda Ulandari',
             'username' => 'IndaUlandari',
             'email' => null,
@@ -31,14 +31,14 @@ class DatabaseSeeder extends Seeder
             'role' => 'hrd'
         ]);
 
-        User::factory()->create([
+        User::create([
             'name' => 'Syahrul Ramadhan',
             'username' => 'SyahrulRamadhan',
             'email' => null,
             'password' => bcrypt('TMJSafetyNumber01'),
             'role' => 'workshop'
         ]);
-        User::factory()->create([
+        User::create([
             'name' => 'Ayatollah Khomeni',
             'username' => 'AyatollahKhomeni',
             'email' => null,
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'workshop'
         ]);
 
-        User::factory()->create([
+        User::create([
             'name' => 'Faldia Kurniawan',
             'username' => 'FaldiaKurniawan',
             'email' => null,
@@ -54,14 +54,14 @@ class DatabaseSeeder extends Seeder
             'role' => 'workshop'
         ]);
 
-        User::factory()->create([
+        User::create([
             'name' => 'Rudi Prayogo',
             'username' => 'RudiPrayogo',
             'email' => null,
             'password' => bcrypt('TMJSafetyNumber01'),
             'role' => 'workshop'
         ]);
-        User::factory()->create([
+        User::create([
             'name' => 'Tam Kholik',
             'username' => 'TamKholik',
             'email' => null,
