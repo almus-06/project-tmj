@@ -263,112 +263,7 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════════ --}}
-    {{-- SECTION 2: Health Check                   --}}
-    {{-- ══════════════════════════════════════════ --}}
-    <div class="section-card" id="health_check_card">
-        <p class="section-label green">
-            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-            Health Check
-        </p>
-
-        {{-- Medical Metrics Grid --}}
-        <div class="grid grid-cols-3 gap-2.5 mb-4">
-            {{-- Blood Pressure --}}
-            <div class="metric-card" id="bp_card">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #FFF1F2;">
-                    <svg class="w-4 h-4" style="color: #F43F5E;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    </svg>
-                </div>
-                <span class="text-center" style="font-size:0.6rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.08em;line-height:1.2;">Tensi<br><span style="color:#CBD5E1;font-weight:400;font-size:0.58rem;">(mmHg)</span></span>
-                <input type="text" id="blood_pressure" name="blood_pressure" required
-                    placeholder="120/80" value="{{ old('blood_pressure') }}"
-                    onblur="checkBP(this)"
-                    class="@error('blood_pressure') text-red-500 @enderror"
-                    style="font-size:1rem;">
-                <div id="bp_warning" class="hidden text-center" style="font-size:0.6rem;font-weight:700;color:#F43F5E;">⚠ Abnormal</div>
-                @error('blood_pressure') <span class="text-red-500" style="font-size:0.6rem;font-weight:600;text-align:center;">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- SpO2 --}}
-            <div class="metric-card">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #EFF6FF;">
-                    <svg class="w-4 h-4" style="color: #3B82F6;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <span class="text-center" style="font-size:0.6rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.08em;line-height:1.2;">SpO2<br><span style="color:#CBD5E1;font-weight:400;font-size:0.58rem;">(%)</span></span>
-                <input type="number" id="spo2" name="spo2" required
-                    placeholder="98" min="0" max="100" value="{{ old('spo2') }}"
-                    class="@error('spo2') text-red-500 @enderror">
-                @error('spo2') <span class="text-red-500" style="font-size:0.6rem;font-weight:600;">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Temperature --}}
-            <div class="metric-card">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #FFFBEB;">
-                    <svg class="w-4 h-4" style="color: #F59E0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <span class="text-center" style="font-size:0.6rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.08em;line-height:1.2;">Temp<br><span style="color:#CBD5E1;font-weight:400;font-size:0.58rem;">(°C)</span></span>
-                <input type="number" step="0.1" id="temperature" name="temperature" required
-                    placeholder="36.5" value="{{ old('temperature') }}"
-                    class="@error('temperature') text-red-500 @enderror">
-                @error('temperature') <span class="text-red-500" style="font-size:0.6rem;font-weight:600;">{{ $message }}</span> @enderror
-            </div>
-        </div>
-
-        {{-- TAK Clearance --}}
-        <div class="flex items-center gap-4 p-4 rounded-xl" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
-            <input type="hidden" id="tak" name="tak" value="{{ old('tak', '1') }}">
-            <button type="button" id="tak_toggle" onclick="toggleTAK()"
-                class="flex items-center flex-shrink-0 w-12 h-6 rounded-full p-0.5 transition-all duration-300"
-                style="background: #22C55E;">
-                <span id="tak_knob" class="w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300" style="transform: translateX(24px);"></span>
-            </button>
-            <div>
-                <p class="font-black text-slate-700 uppercase tracking-widest" style="font-size:0.75rem;">TAK STATUS</p>
-                <p class="text-slate-400 font-bold uppercase tracking-tight" style="font-size:0.65rem;">Tidak Ada Kelainan Medis</p>
-            </div>
-        </div>
-
-        {{-- Fit / Unfit --}}
-        <div class="mt-4">
-            <label class="field-label">Fit Status <span class="text-red-400">*</span></label>
-            <input type="hidden" id="fit_status" name="fit_status" value="{{ old('fit_status', 'Fit') }}">
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="selectFit('Fit')" id="btn_fit"
-                    class="toggle-card flex flex-col items-center gap-2 py-5">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center" id="fit_icon_bg" style="background: #F0FDF4;">
-                        <svg class="w-5 h-5" id="fit_icon" style="color: #16A34A;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black" id="fit_label" style="color: #16A34A;">FIT</p>
-                        <p class="text-xs font-medium" id="fit_sub" style="color: #86EFAC;">Sehat</p>
-                    </div>
-                </button>
-                <button type="button" onclick="selectFit('Unfit')" id="btn_unfit"
-                    class="toggle-card flex flex-col items-center gap-2 py-5">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center" id="unfit_icon_bg" style="background: #F8FAFC;">
-                        <svg class="w-5 h-5" id="unfit_icon" style="color: #CBD5E1;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black" id="unfit_label" style="color: #94A3B8;">UNFIT</p>
-                        <p class="text-xs font-medium" id="unfit_sub" style="color: #CBD5E1;">Tidak Sehat</p>
-                    </div>
-                </button>
-            </div>
-            @error('fit_status') <span class="text-xs text-red-500 font-semibold mt-2 block">{{ $message }}</span> @enderror
-        </div>
-    </div>
+    
 
     {{-- ══════════════════════════════════════════ --}}
     {{-- SECTION 3: Lokasi Verifikasi              --}}
@@ -561,9 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('header_date').textContent = `${dd} ${months[now.getMonth()]} ${yyyy}`;
 
     selectPresence('{{ old('presence_status', 'Hadir') }}');
-    selectFit('{{ old('fit_status', 'Fit') }}');
-    const takVal = '{{ old('tak', '1') }}';
-    if (takVal !== '1') setTAK(false);
 
     // Auto-request geolocation on page load
     requestGeolocation();
@@ -784,90 +676,7 @@ function selectPresence(val) {
     if (input) input.value = val;
 }
 
-// ─── Fit Toggle ───────────────────────────────────────────────────────
-function selectFit(val) {
-    document.getElementById('fit_status').value = val;
 
-    const fitBtn    = document.getElementById('btn_fit');
-    const unfitBtn  = document.getElementById('btn_unfit');
-
-    if (val === 'Fit') {
-        // Active FIT
-        fitBtn.style.background     = '#F0FDF4';
-        fitBtn.style.borderColor    = '#22C55E';
-        document.getElementById('fit_icon_bg').style.background = '#DCFCE7';
-        document.getElementById('fit_icon').style.color   = '#16A34A';
-        document.getElementById('fit_label').style.color  = '#16A34A';
-        document.getElementById('fit_sub').style.color    = '#4ADE80';
-        // Inactive UNFIT
-        unfitBtn.style.background    = '#F8FAFC';
-        unfitBtn.style.borderColor   = '#E2E8F0';
-        document.getElementById('unfit_icon_bg').style.background = '#F8FAFC';
-        document.getElementById('unfit_icon').style.color   = '#CBD5E1';
-        document.getElementById('unfit_label').style.color  = '#94A3B8';
-        document.getElementById('unfit_sub').style.color    = '#CBD5E1';
-    } else {
-        // Inactive FIT
-        fitBtn.style.background     = '#F8FAFC';
-        fitBtn.style.borderColor    = '#E2E8F0';
-        document.getElementById('fit_icon_bg').style.background = '#F8FAFC';
-        document.getElementById('fit_icon').style.color   = '#CBD5E1';
-        document.getElementById('fit_label').style.color  = '#94A3B8';
-        document.getElementById('fit_sub').style.color    = '#CBD5E1';
-        // Active UNFIT
-        unfitBtn.style.background    = '#FFF1F2';
-        unfitBtn.style.borderColor   = '#F87171';
-        document.getElementById('unfit_icon_bg').style.background = '#FFE4E6';
-        document.getElementById('unfit_icon').style.color   = '#EF4444';
-        document.getElementById('unfit_label').style.color  = '#DC2626';
-        document.getElementById('unfit_sub').style.color    = '#FCA5A5';
-    }
-}
-
-// ─── TAK Toggle ───────────────────────────────────────────────────────
-function setTAK(checked) {
-    document.getElementById('tak').value = checked ? '1' : '0';
-    const btn  = document.getElementById('tak_toggle');
-    const knob = document.getElementById('tak_knob');
-    const wrap = btn.parentElement; // Ambil parent langsung (div kartu)
-    
-    if (checked) {
-        btn.style.background = '#22C55E';
-        knob.style.transform = 'translateX(24px)';
-        wrap.style.background   = '#F8FAFC';
-        wrap.style.borderColor  = '#E2E8F0';
-    } else {
-        btn.style.background = '#94A3B8';
-        knob.style.transform = 'translateX(2px)';
-        wrap.style.background  = '#F8FAFC';
-        wrap.style.borderColor = '#E2E8F0';
-    }
-}
-function toggleTAK() {
-    setTAK(document.getElementById('tak').value !== '1');
-}
-
-// ─── Blood Pressure Validator ─────────────────────────────────────────
-function checkBP(input) {
-    const val = input.value.trim();
-    const warning = document.getElementById('bp_warning');
-    const card    = document.getElementById('bp_card');
-    card.style.borderColor = '#E8EDF3';
-    warning.classList.add('hidden');
-    if (val.includes('/')) {
-        const [s,d] = val.split('/').map(Number);
-        if (!isNaN(s) && !isNaN(d)) {
-            if (s < 90 || s > 130 || d < 60 || d > 85) {
-                card.style.borderColor = '#F87171';
-                input.style.color = '#EF4444';
-                warning.classList.remove('hidden');
-            } else {
-                card.style.borderColor = '#4ADE80';
-                input.style.color = '#16A34A';
-            }
-        }
-    }
-}
 
 // ─── Camera / Photo Verification ──────────────────────────────────────
 let cameraStream = null;
@@ -1041,23 +850,7 @@ function handleFallbackFile(input) {
     }
 }
 
-// ─── Submit Loading & Validation ──────────────────────────────────────
-// Helper to toggle 'required' attribute on health fields to prevent silent browser form block
-function toggleHealthValidation(isRequired) {
-    const bpInput = document.getElementById('blood_pressure');
-    const spo2Input = document.getElementById('spo2');
-    const tempInput = document.getElementById('temperature');
-    
-    if (isRequired) {
-        if (bpInput) bpInput.setAttribute('required', '');
-        if (spo2Input) spo2Input.setAttribute('required', '');
-        if (tempInput) tempInput.setAttribute('required', '');
-    } else {
-        if (bpInput) bpInput.removeAttribute('required');
-        if (spo2Input) spo2Input.removeAttribute('required');
-        if (tempInput) tempInput.removeAttribute('required');
-    }
-}
+
 
 document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     // Validate Hidden Fields
@@ -1101,7 +894,6 @@ function checkEmployeeStatus(employeeId) {
     const submitBtn = document.getElementById('submitBtn');
     const submitBtnText = document.getElementById('submitBtnText');
     const headerContainer = document.getElementById('header_container');
-    const healthCard = document.getElementById('health_check_card');
     const photoSection = document.getElementById('photo_section');
     const attendanceType = document.getElementById('attendance_type');
     
@@ -1128,15 +920,11 @@ function checkEmployeeStatus(employeeId) {
         .then(data => {
             if (data.status === 'device_blocked') {
                 showStatusAlert(data.message, 'error');
-                healthCard.style.display = 'none';
                 photoSection.style.display = 'none';
-                toggleHealthValidation(false);
                 validateFormReadyForSubmit();
             } else if (data.status === 'already_completed') {
                 showStatusAlert(data.message, 'info');
-                healthCard.style.display = 'none';
                 photoSection.style.display = 'none';
-                toggleHealthValidation(false);
                 validateFormReadyForSubmit();
             } else if (data.status === 'can_clock_out') {
                 attendanceType.value = 'clock_out';
@@ -1145,9 +933,7 @@ function checkEmployeeStatus(employeeId) {
                 headerContainer.style.background = '#D97706'; // Amber 600
                 headerContainer.style.borderBottomColor = '#B45309'; // Amber 700
                 
-                healthCard.style.display = 'none';
                 photoSection.style.display = 'none';
-                toggleHealthValidation(false);
                 
                 validateFormReadyForSubmit();
             } else {
@@ -1157,9 +943,7 @@ function checkEmployeeStatus(employeeId) {
                 headerContainer.style.background = '#059669'; // Green 600
                 headerContainer.style.borderBottomColor = '#047857'; // Green 700
                 
-                healthCard.style.display = 'block';
                 photoSection.style.display = 'block';
-                toggleHealthValidation(true);
                 
                 validateFormReadyForSubmit();
             }
@@ -1220,7 +1004,6 @@ function resetFormState() {
     const submitBtn = document.getElementById('submitBtn');
     const submitBtnText = document.getElementById('submitBtnText');
     const headerContainer = document.getElementById('header_container');
-    const healthCard = document.getElementById('health_check_card');
     const photoSection = document.getElementById('photo_section');
     const attendanceType = document.getElementById('attendance_type');
 
@@ -1232,9 +1015,7 @@ function resetFormState() {
     attendanceType.value = 'clock_in';
     headerContainer.style.background = '#059669';
     headerContainer.style.borderBottomColor = '#047857';
-    healthCard.style.display = 'block';
     photoSection.style.display = 'block';
-    toggleHealthValidation(true);
 
     submitBtn.disabled = true;
     submitBtn.style.background = '#94A3B8';

@@ -24,7 +24,7 @@
     </div>
 
     {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+    <div class="grid grid-cols-1 max-w-sm gap-5 mb-8">
         {{-- Total Entri --}}
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-indigo-500">
             <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
@@ -36,34 +36,6 @@
             <p class="text-4xl font-black text-indigo-600 tabular-nums">{{ $totalCount }}</p>
             <p class="text-[10px] text-indigo-400 font-bold mt-2 uppercase">
                 {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Hari Ini' }}
-            </p>
-        </div>
-
-        {{-- Fit To Work --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-green-500">
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Fit To Work</p>
-            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $fitCount }}</p>
-            <p class="text-[10px] text-green-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Sehat' }}
-            </p>
-        </div>
-
-        {{-- Unfit --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-amber-500">
-            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Unfit</p>
-            <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $unfitCount }}</p>
-            <p class="text-[10px] text-amber-400 font-bold mt-2 uppercase">
-                {{ request()->filled('start_date') || request()->filled('end_date') || request()->filled('project') ? 'Berdasarkan Filter' : 'Personel Kurang Sehat' }}
             </p>
         </div>
     </div>
@@ -216,13 +188,6 @@
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK (CLOCK-IN)</span>
                         @endif
 
-                        {{-- Fit Status --}}
-                        @if($row->fit_status === 'Fit')
-                            <span class="status-chip badge-fit">✓ Fit</span>
-                        @else
-                            <span class="status-chip badge-unfit">✗ Unfit</span>
-                        @endif
-
                         {{-- Shift --}}
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide border whitespace-nowrap {{ $row->shift === 'Shift Pagi' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($row->shift === 'Shift Malam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200') }}">{{ $row->shift ?? '—' }}</span>
                     </div>
@@ -233,11 +198,6 @@
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
                                 📍 {{ $row->project->name ?? '—' }}
                             </span>
-                            <div class="flex gap-1 tabular-nums">
-                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">BP: {{ $row->blood_pressure }}</span>
-                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">SpO2: {{ $row->spo2 }}%</span>
-                                <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-500">T: {{ $row->temperature }}°C</span>
-                            </div>
                         </div>
                         
                         @if($row->accuracy || $row->speed > 0)
@@ -275,8 +235,6 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Tipe</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Metrik FTW</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Hasil FTW</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Waktu</th>
                     </tr>
                 </thead>
@@ -317,21 +275,6 @@
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK</span>
                                 @endif
-                            </td>
-                            <td class="px-5 py-2">
-                                <div class="flex items-center gap-1 tabular-nums">
-                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
-                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
-                                    <span class="text-[9px] bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600 border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
-                                </div>
-                            </td>
-                            <td class="px-5 py-2">
-                                @if($row->fit_status === 'Fit')
-                                    <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
-                                @else
-                                    <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
-                                @endif
-                            </td>
                             <td class="px-5 py-2 text-right tabular-nums">
                                 <p class="text-xs font-black text-slate-800">{{ $row->created_at->format('d M Y') }}</p>
                                 <p class="text-[9px] text-slate-400 font-bold">{{ $row->created_at->format('H:i') }}</p>
@@ -339,7 +282,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center">
+                            <td colspan="5" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -83,12 +83,6 @@
             .profile-meta-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .profile-health-widget {
-                width: auto;
-                min-width: 240px;
-                border-left: 1px solid #F1F5F9;
-                padding-left: 32px;
-            }
         }
     </style>
 
@@ -177,38 +171,10 @@
             </div>
         </div>
 
-        {{-- Right: Health Indicator Widget --}}
-        <div class="profile-health-widget">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center lg:text-left block mb-1">Rata-rata Kesehatan Harian</span>
-            
-            <div class="grid grid-cols-2 gap-3.5">
-                {{-- Suhu Card --}}
-                <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex flex-col items-center justify-center text-center shadow-sm">
-                    <div class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center mb-1.5">
-                        <svg class="w-4.5 h-4.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
-                        </svg>
-                    </div>
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Suhu</span>
-                    <span class="text-xs font-black text-slate-800 mt-0.5">{{ $avgTemp ? round($avgTemp, 1) . '°C' : '—' }}</span>
-                </div>
-
-                {{-- SpO2 Card --}}
-                <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex flex-col items-center justify-center text-center shadow-sm">
-                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center mb-1.5">
-                        <svg class="w-4.5 h-4.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                    </div>
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">SpO2</span>
-                    <span class="text-xs font-black text-slate-800 mt-0.5">{{ $avgSpo2 ? round($avgSpo2, 0) . '%' : '—' }}</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     {{-- Summary Statistics --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+    <div class="grid grid-cols-1 max-w-sm gap-5 mb-8">
         {{-- Total Entri --}}
         <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-indigo-500">
             <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
@@ -218,28 +184,6 @@
             </div>
             <p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Total Entri</p>
             <p class="text-4xl font-black text-indigo-600 tabular-nums">{{ $totalCount }}</p>
-        </div>
-
-        {{-- Total Fit To Work --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-green-500">
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Total Fit To Work</p>
-            <p class="text-4xl font-black text-green-600 tabular-nums">{{ $totalFit }}</p>
-        </div>
-
-        {{-- Total Unfit --}}
-        <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-amber-500">
-            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Total Unfit</p>
-            <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $totalUnfit }}</p>
         </div>
     </div>
 
@@ -345,11 +289,7 @@
                             @else
                                 <span class="text-[9px] bg-emerald-600 px-1.5 py-0.5 rounded font-black text-white border border-emerald-700">MASUK</span>
                             @endif
-                            @if($row->fit_status === 'Fit')
-                                <span class="text-[9px] bg-emerald-50 px-1.5 py-0.5 rounded font-black text-emerald-600 border border-emerald-100">✓ FIT</span>
-                            @else
-                                <span class="text-[9px] bg-amber-50 px-1.5 py-0.5 rounded font-black text-amber-600 border border-amber-100">✗ UNFIT</span>
-                            @endif
+
                         </div>
                     </div>
 
@@ -373,11 +313,9 @@
                             @endif
                         </div>
                         <div>
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Health Indicators</span>
-                            <div class="flex flex-col gap-0.5 font-bold text-slate-600 mt-1">
-                                <span>BP: {{ $row->blood_pressure }}</span>
-                                <span>SpO2: {{ $row->spo2 }}%</span>
-                                <span>Temp: {{ $row->temperature }}°C</span>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-wide block">Tipe Absensi</span>
+                            <div class="font-bold text-slate-600 mt-1 text-xs">
+                                {{ $row->type === 'clock_out' ? 'PULANG' : 'MASUK' }}
                             </div>
                         </div>
                     </div>
@@ -404,8 +342,6 @@
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Penempatan</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
                         <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Tipe</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Fit Status</th>
-                        <th class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Vital Metrics</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -450,24 +386,11 @@
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide border whitespace-nowrap bg-emerald-600 text-white border-emerald-700">MASUK</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-2">
-                                @if($row->fit_status === 'Fit')
-                                    <span class="status-chip badge-fit" style="padding-top: 2px; padding-bottom: 2px;">✓ Fit</span>
-                                @else
-                                    <span class="status-chip badge-unfit" style="padding-top: 2px; padding-bottom: 2px;">✗ Unfit</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-2">
-                                <div class="flex items-center gap-1 text-[9px] tabular-nums font-bold text-slate-600">
-                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">BP: {{ $row->blood_pressure }}</span>
-                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">SpO2: {{ $row->spo2 }}%</span>
-                                    <span class="bg-slate-100 px-1 py-0.5 rounded border border-slate-200/60 whitespace-nowrap">T: {{ $row->temperature }}°C</span>
-                                </div>
-                            </td>
+
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center">
+                            <td colspan="5" class="px-5 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -787,22 +710,12 @@
                                         <span class="text-slate-400 font-bold uppercase text-[8px]">Kehadiran:</span>
                                         <span class="font-black ${point.status === 'Hadir' ? 'text-emerald-600' : 'text-rose-600'}">${point.status}</span>
                                     </div>
-                                    ${point.status === 'Hadir' ? `
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Kondisi FTW:</span>
-                                        <span class="font-black ${point.fit === 'Fit' ? 'text-emerald-600' : 'text-amber-600'}">${point.fit}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-slate-400 font-bold uppercase text-[8px]">Metrik Vital:</span>
-                                        <span class="font-black text-slate-700">${point.bp} | SpO2 ${point.spo2}% | ${point.temp}°C</span>
-                                    </div>
                                     <div class="flex justify-between items-start">
                                         <span class="text-slate-400 font-bold uppercase text-[8px] mt-0.5">Akurasi GPS:</span>
                                         <span class="font-black ${point.inside ? 'text-emerald-600' : 'text-rose-600'} text-right">
                                             ${point.inside ? '📍 Dalam Area' : `⚠ Luar Area (${point.dist >= 1000 ? (point.dist/1000).toFixed(1)+'km' : Math.round(point.dist)+'m'})`}
                                         </span>
                                     </div>
-                                    ` : ''}
                                     <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 mt-1.5">
                                         <span class="text-slate-400 font-bold uppercase text-[8px]">Project Area:</span>
                                         <span class="font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[9px]">${escapeHtml(point.project_name)}</span>

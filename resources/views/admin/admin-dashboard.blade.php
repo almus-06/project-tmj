@@ -14,37 +14,11 @@
 
     {{-- Stat Cards --}}
     @php
-        $statCols = in_array(Auth::user()->role, ['admin', 'supervisor']) ? 'lg:grid-cols-4' : 'lg:grid-cols-2';
+        $statCols = 'lg:grid-cols-2';
     @endphp
     <div class="grid grid-cols-2 {{ $statCols }} gap-5 mb-8">
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'hrd']))
-            {{-- Fit --}}
-            <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-green-500">
-                <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Fit To Work</p>
-                <p class="text-4xl font-black text-green-600 tabular-nums">{{ $fitCount }}</p>
-                <p class="text-[10px] text-green-400 font-bold mt-2 uppercase">Personel Siap Kerja</p>
-            </div>
-
-            {{-- Unfit --}}
-            <div class="card-industrial p-6 flex flex-col items-center text-center border-b-4 border-b-amber-500">
-                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Unfit</p>
-                <p class="text-4xl font-black text-amber-600 tabular-nums">{{ $unfitCount }}</p>
-                <p class="text-[10px] text-amber-400 font-bold mt-2 uppercase">Personel Kurang Sehat</p>
-            </div>
+            {{-- Quick Stats for HRD could be added here in the future --}}
         @endif
 
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))

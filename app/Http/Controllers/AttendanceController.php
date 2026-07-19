@@ -106,18 +106,8 @@ class AttendanceController extends Controller
 
         if (!$isClockOut) {
             $rules['presence_status'] = 'required|string|in:Hadir,Sakit,Izin';
-            $rules['blood_pressure'] = ['required', 'regex:/^\d{2,3}\/\d{2,3}$/'];
-            $rules['spo2'] = 'required|integer|min:0|max:100';
-            $rules['temperature'] = 'required|numeric|min:30|max:45';
-            $rules['tak'] = 'required|boolean';
-            $rules['fit_status'] = 'required|string|in:Fit,Unfit';
         } else {
             $rules['presence_status'] = 'nullable|string';
-            $rules['blood_pressure'] = 'nullable|string';
-            $rules['spo2'] = 'nullable|integer';
-            $rules['temperature'] = 'nullable|numeric';
-            $rules['tak'] = 'nullable|boolean';
-            $rules['fit_status'] = 'nullable|string';
         }
 
         $validated = $request->validate($rules, [
@@ -133,13 +123,15 @@ class AttendanceController extends Controller
         $validated['device_fingerprint'] = $fp;
         $validated['ip_address'] = $request->ip();
 
+        // Default values for health check parameters (removed from form UI)
+        $validated['blood_pressure'] = '—';
+        $validated['spo2'] = 0;
+        $validated['temperature'] = 0.00;
+        $validated['tak'] = true;
+        $validated['fit_status'] = 'Fit';
+
         if ($isClockOut) {
             $validated['presence_status'] = 'Pulang';
-            $validated['blood_pressure'] = '—';
-            $validated['spo2'] = 0;
-            $validated['temperature'] = 0;
-            $validated['tak'] = true;
-            $validated['fit_status'] = 'Fit';
         }
 
         // Process and save verification photo

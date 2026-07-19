@@ -9,7 +9,7 @@ set -e
 #   UPDATE BIASA  : bash deploy.sh
 # ═══════════════════════════════════════════════════════════════════
 
-BRANCH="feature/clock-out"
+BRANCH="maintenance"
 PHP_FPM_SERVICE="php8.3-fpm"
 
 echo ""
