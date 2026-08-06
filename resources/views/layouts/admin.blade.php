@@ -174,7 +174,6 @@
         .transition-fade {
             transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
-            transform: translateY(0);
         }
 
         html.is-leaving .transition-fade {
@@ -243,6 +242,12 @@
                             Absensi
                         </a>
                     @endif
+                    @if(in_array(Auth::user()->role, ['admin', 'hrd']))
+                        <a href="{{ route('workforce.employees') }}"
+                            class="nav-link {{ request()->routeIs('workforce.employees') ? 'active' : '' }}">
+                            Karyawan
+                        </a>
+                    @endif
                     @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))
                         <a href="{{ route('fleet.management') }}"
                             class="nav-link {{ request()->routeIs('fleet.management') ? 'active' : '' }}">
@@ -282,6 +287,12 @@
                 <a href="{{ route('workforce.attendance') }}"
                     class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('workforce.attendance') ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50' }}">
                     Absensi
+                </a>
+            @endif
+            @if(in_array(Auth::user()->role, ['admin', 'hrd']))
+                <a href="{{ route('workforce.employees') }}"
+                    class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('workforce.employees') ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                    Karyawan
                 </a>
             @endif
             @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'workshop']))

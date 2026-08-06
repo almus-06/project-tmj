@@ -23,6 +23,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/operations-dashboard/fleet-management', [\App\Http\Controllers\OperationsController::class, 'units'])
         ->middleware('role:admin,supervisor,workshop')
         ->name('fleet.management');
+
+    // Workforce Employee Management (CRUD - Restricted to Admin & HRD)
+    Route::get('/operations-dashboard/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])
+        ->middleware('role:admin,hrd')
+        ->name('workforce.employees');
+    Route::post('/operations-dashboard/employees', [\App\Http\Controllers\EmployeeController::class, 'store'])
+        ->middleware('role:admin,hrd')
+        ->name('employees.store');
+    Route::put('/operations-dashboard/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'update'])
+        ->middleware('role:admin,hrd')
+        ->name('employees.update');
+    Route::delete('/operations-dashboard/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])
+        ->middleware('role:admin,hrd')
+        ->name('employees.destroy');
 });
 
 Route::middleware('auth')->group(function () {
