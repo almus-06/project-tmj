@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Project;
+use App\Services\AttendanceCodeGenerator;
 
 class AttendanceController extends Controller
 {
@@ -280,16 +281,10 @@ class AttendanceController extends Controller
 
                 $rec = Attendance::create($validated);
 
-                // Update the unique code using a daily sequence counter
-                $todayPrefix = 'FitToWork-TMJ-' . $rec->created_at->format('dmy');
-                $startOfDay = $rec->created_at->copy()->startOfDay();
-                
-                $dailySequence = Attendance::where('created_at', '>=', $startOfDay)
-                                           ->where('id', '<=', $rec->id)
-                                           ->count();
-                                           
-                $sequence = str_pad($dailySequence, 4, '0', STR_PAD_LEFT);
-                $finalCode = $todayPrefix . '-' . $sequence;
+                // Kode absensi harian dari counter yang dikunci per tanggal
+                // (lihat AttendanceCodeGenerator) agar submit bersamaan tidak
+                // mendapat nomor urut yang sama.
+                $finalCode = app(AttendanceCodeGenerator::class)->next($rec->created_at);
 
                 $rec->update(['attendance_code' => $finalCode]);
 
