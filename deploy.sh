@@ -95,9 +95,11 @@ php artisan view:cache
 php artisan event:cache
 
 # ─── Set Permissions ───────────────────────────────────────────
+# Pemilik = user deploy (agar git pull berikutnya tidak gagal "Permission
+# denied" di storage/), grup = www-data dengan izin tulis untuk PHP-FPM.
 echo "🔒 Mengatur izin file..."
+sudo chown -R "$(whoami)":www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
-sudo chown -R www-data:www-data storage bootstrap/cache
 
 # ─── Restart PHP-FPM ──────────────────────────────────────────
 echo "🔄 Me-restart ${PHP_FPM_SERVICE}..."
