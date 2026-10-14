@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
-        $middleware->trustProxies(at: '*');
+        // Daftar proxy yang dipercaya dibaca dari config/trustedproxy.php
+        // (env TRUSTED_PROXIES), bukan '*' yang memungkinkan pemalsuan IP.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
