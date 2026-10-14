@@ -41,6 +41,13 @@ class AttendanceController extends Controller
         $fp = substr(trim($fp), 0, 100); // Sanitize dan batasi panjang
         $today = now()->toDateString();
 
+        // Endpoint ini hanya menjawab status karyawan yang diminta; tidak pernah
+        // mengembalikan nama/ID karyawan lain. ID yang tidak terdaftar dijawab
+        // sama seperti ID kosong agar tidak bisa dipakai menebak daftar karyawan.
+        if (! Employee::whereKey($employeeId)->exists()) {
+            return response()->json(['status' => 'no_employee']);
+        }
+
         // 1. Cek apakah perangkat (fingerprint) sudah digunakan oleh karyawan lain hari ini
         if ($fp) {
             $otherEmployeeUsed = Attendance::whereDate('created_at', $today)

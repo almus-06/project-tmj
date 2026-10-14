@@ -22,8 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Form absensi bersifat publik, jadi dibatasi dua lapis:
+        // per karyawan (employee_id dikirim oleh klien, bisa diganti-ganti)
+        // dan per alamat IP agar satu pengirim tidak bisa menyapu banyak karyawan.
         RateLimiter::for('attendance', function (Request $request) {
-            return Limit::perMinute(3)->by($request->input('employee_id') ?: $request->ip());
+            return [
+                Limit::perMinute(3)->by('karyawan:' . ($request->input('employee_id') ?: $request->ip())),
+                Limit::perMinute(30)->by('ip:' . $request->ip()),
+            ];
         });
     }
 }
