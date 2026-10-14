@@ -80,19 +80,23 @@ class OperationsController extends Controller
 
     public function units(Request $request)
     {
+        // Filter tanggal diterapkan DULU pada subquery, baru diambil status
+        // terbaru per unit di dalam rentang itu. Jika dibalik, unit yang status
+        // terakhirnya di luar rentang akan hilang sama sekali.
         $latestIdsQuery = UnitStatus::selectRaw('MAX(id)')->groupBy('unit_id');
-        $query = UnitStatus::with(['unit', 'operator', 'project'])->whereIn('id', $latestIdsQuery)->latest();
-
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
+            $latestIdsQuery->whereBetween('created_at', [
                 $request->start_date . ' 00:00:00',
                 $request->end_date . ' 23:59:59'
             ]);
         } elseif ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
+            $latestIdsQuery->whereDate('created_at', '>=', $request->start_date);
         } elseif ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
+            $latestIdsQuery->whereDate('created_at', '<=', $request->end_date);
         }
+
+        $query = UnitStatus::with(['unit', 'operator', 'project'])->whereIn('id', $latestIdsQuery)->latest();
+
         if ($request->filled('project'))
             $query->whereHas('project', fn($q) => $q->where('name', $request->project));
         if ($request->filled('status'))
@@ -106,20 +110,7 @@ class OperationsController extends Controller
 
         // Stats version Fleet (Filtered Summary)
         // Match the same logic as the table: latest status per unit, filtered by project/date
-        $statsBase = UnitStatus::whereIn('id', function ($q) {
-            $q->selectRaw('MAX(id)')->from('unit_statuses')->groupBy('unit_id');
-        });
-
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $statsBase->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        } elseif ($request->filled('start_date')) {
-            $statsBase->whereDate('created_at', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $statsBase->whereDate('created_at', '<=', $request->end_date);
-        }
+        $statsBase = UnitStatus::whereIn('id', clone $latestIdsQuery);
 
         if ($request->filled('project')) {
             $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
