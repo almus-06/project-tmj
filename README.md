@@ -35,7 +35,7 @@ Sistem ini dikembangkan menggunakan tumpukan teknologi modern untuk memastikan p
 
 - **Backend Framework:** Laravel 13
 - **Bahasa Pemrograman:** PHP 8.3
-- **Frontend Framework:** TailwindCSS v4.0 & Alpine.js v3
+- **Frontend Framework:** TailwindCSS v3 (PostCSS) & Alpine.js v3
 - **Bundler:** Vite
 - **Database:** MySQL / PostgreSQL
 
