@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FilterRentangTanggal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceFactory> */
-    use HasFactory;
+    use HasFactory, FilterRentangTanggal;
     protected $fillable = [
         'attendance_code',
         'type',

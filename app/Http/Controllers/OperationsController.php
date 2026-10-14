@@ -28,20 +28,15 @@ class OperationsController extends Controller
 
     public function attendances(Request $request)
     {
-        $query = Attendance::with(['employee', 'project'])->latest();
+        $mulai = $request->input('start_date');
+        $sampai = $request->input('end_date');
+        $proyek = $request->input('project');
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        } elseif ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
-        if ($request->filled('project'))
-            $query->whereHas('project', fn($q) => $q->where('name', $request->project));
+        // Query yang sama dipakai untuk tabel dan export
+        $query = Attendance::with(['employee', 'project'])
+            ->rentangTanggal($mulai, $sampai)
+            ->proyek($proyek)
+            ->latest();
 
         if ($request->input('export') == 'csv') {
             return $this->exportCsv($query, 'attendances');
@@ -49,26 +44,11 @@ class OperationsController extends Controller
 
         $attendances = $query->paginate(35)->withQueryString();
 
-        // Stats version Karyawan (Filtered Summary)
-        // We use a base query that reflects date and project filters, but NOT the status filter
-        $statsBase = Attendance::query();
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $statsBase->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        } elseif ($request->filled('start_date')) {
-            $statsBase->whereDate('created_at', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $statsBase->whereDate('created_at', '<=', $request->end_date);
-        } elseif (!$request->filled('start_date') && !$request->filled('end_date') && !$request->filled('project')) {
-            // Default to today for summary cards only if NO filters are applied
-            // If a project is selected but no date, show all-time for that project to match table
+        // Statistik mengikuti filter tanggal & proyek. Jika tidak ada filter
+        // sama sekali, kartu ringkasan menampilkan data hari ini saja.
+        $statsBase = Attendance::query()->rentangTanggal($mulai, $sampai)->proyek($proyek);
+        if (! $mulai && ! $sampai && ! $proyek) {
             $statsBase->whereDate('created_at', now()->toDateString());
-        }
-
-        if ($request->filled('project')) {
-            $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
         }
 
         $totalCount = (clone $statsBase)->where('type', 'clock_in')->count();
@@ -80,27 +60,17 @@ class OperationsController extends Controller
 
     public function units(Request $request)
     {
-        // Filter tanggal diterapkan DULU pada subquery, baru diambil status
-        // terbaru per unit di dalam rentang itu. Jika dibalik, unit yang status
-        // terakhirnya di luar rentang akan hilang sama sekali.
-        $latestIdsQuery = UnitStatus::selectRaw('MAX(id)')->groupBy('unit_id');
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $latestIdsQuery->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        } elseif ($request->filled('start_date')) {
-            $latestIdsQuery->whereDate('created_at', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $latestIdsQuery->whereDate('created_at', '<=', $request->end_date);
-        }
+        $mulai = $request->input('start_date');
+        $sampai = $request->input('end_date');
+        $proyek = $request->input('project');
 
-        $query = UnitStatus::with(['unit', 'operator', 'project'])->whereIn('id', $latestIdsQuery)->latest();
-
-        if ($request->filled('project'))
-            $query->whereHas('project', fn($q) => $q->where('name', $request->project));
-        if ($request->filled('status'))
-            $query->where('status', $request->status);
+        // Status terbaru per unit di dalam rentang tanggal, lalu filter proyek & status.
+        // Query yang sama dipakai untuk tabel dan export.
+        $query = UnitStatus::with(['unit', 'operator', 'project'])
+            ->terbaruPerUnit($mulai, $sampai)
+            ->proyek($proyek)
+            ->status($request->input('status'))
+            ->latest();
 
         if ($request->input('export') == 'csv') {
             return $this->exportCsv($query, 'unit_statuses');
@@ -108,15 +78,11 @@ class OperationsController extends Controller
 
         $unitStatuses = $query->paginate(35)->withQueryString();
 
-        // Stats version Fleet (Filtered Summary)
-        // Match the same logic as the table: latest status per unit, filtered by project/date
-        $statsBase = UnitStatus::whereIn('id', clone $latestIdsQuery);
-
-        if ($request->filled('project')) {
-            $statsBase->whereHas('project', fn($q) => $q->where('name', $request->project));
-        }
-
-        $filteredUnits = $statsBase->get();
+        // Statistik: logika sama dengan tabel, tanpa filter status
+        $filteredUnits = UnitStatus::with('project')
+            ->terbaruPerUnit($mulai, $sampai)
+            ->proyek($proyek)
+            ->get();
 
         $totalUnits = $filteredUnits->count();
         $readyCount = $filteredUnits->where('status', 'Ready')->count();
@@ -226,22 +192,10 @@ class OperationsController extends Controller
     {
         $employee = \App\Models\Employee::findOrFail($employee_id);
 
+        // Filter tanggal memakai scope yang sama dengan halaman absensi
         $query = Attendance::where('employee_id', $employee_id)
-            ->with(['project']);
-
-        // Filter tanggal jika diisi
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        } elseif ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
-
-
+            ->with(['project'])
+            ->rentangTanggal($request->input('start_date'), $request->input('end_date'));
 
         // Clone the base query before modifying it for pagination
         $mapQuery = clone $query;
