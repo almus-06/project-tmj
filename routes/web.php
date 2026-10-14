@@ -37,6 +37,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/operations-dashboard/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])
         ->middleware('role:admin,hrd')
         ->name('employees.destroy');
+
+    // Pengaturan Project: koordinat geofence, radius, jam shift (hanya Admin)
+    Route::get('/operations-dashboard/projects', [\App\Http\Controllers\ProjectController::class, 'index'])
+        ->middleware('role:admin')
+        ->name('projects.index');
+    Route::put('/operations-dashboard/projects/{project}', [\App\Http\Controllers\ProjectController::class, 'update'])
+        ->middleware('role:admin')
+        ->name('projects.update');
 });
 
 Route::middleware('auth')->group(function () {

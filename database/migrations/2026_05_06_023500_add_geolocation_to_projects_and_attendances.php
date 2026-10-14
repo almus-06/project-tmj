@@ -19,7 +19,8 @@ return new class extends Migration
             $table->integer('radius_meters')->default(100)->after('longitude');
         });
 
-        // Set the 3 default projects to the test coordinate and 100m radius
+        // Set 3 project bawaan ke koordinat uji dengan radius 20 m
+        // (nilai sebenarnya bisa diatur admin lewat halaman Proyek)
         DB::table('projects')->update([
             'latitude' => -2.62330530,
             'longitude' => 121.36963140,

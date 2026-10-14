@@ -254,6 +254,12 @@
                             Armada
                         </a>
                     @endif
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('projects.index') }}"
+                            class="nav-link {{ request()->routeIs('projects.index') ? 'active' : '' }}">
+                            Proyek
+                        </a>
+                    @endif
                 </div>
 
                 {{-- User & Logout --}}
@@ -299,6 +305,12 @@
                 <a href="{{ route('fleet.management') }}"
                     class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('fleet.management') ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50' }}">
                     Armada
+                </a>
+            @endif
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('projects.index') }}"
+                    class="block px-3 py-2 rounded-md text-sm font-bold {{ request()->routeIs('projects.index') ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                    Proyek
                 </a>
             @endif
         </div>
