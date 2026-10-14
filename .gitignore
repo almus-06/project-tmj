@@ -4,6 +4,9 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/backups
+# Data karyawan asli, tidak boleh masuk repo
+/karyawan-tmj.sql
 /vendor
 .env
 .env.backup

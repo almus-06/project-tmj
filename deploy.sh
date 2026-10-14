@@ -1,16 +1,23 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ═══════════════════════════════════════════════════════════════════
-# TMJ Operations Dashboard — VPS Deployment Script
+# TMJ Operations Dashboard — Skrip Deploy VPS
 # ═══════════════════════════════════════════════════════════════════
-# Penggunaan:
-#   PERTAMA KALI  : bash deploy.sh --init
-#   UPDATE BIASA  : bash deploy.sh
+# Penggunaan: bash deploy.sh
+#
+# Skrip ini TIDAK PERNAH menghapus data: hanya `migrate --force`
+# (migrasi bersifat menambah) dan selalu membuat backup database dulu.
+# Jika backup gagal, deploy dihentikan.
+#
+# Akun dibuat manual: php artisan user:create
+# Perbaikan role akun lama: php artisan user:fix-roles --dry-run, lalu
+#                           php artisan user:fix-roles
 # ═══════════════════════════════════════════════════════════════════
 
 BRANCH="maintenance"
 PHP_FPM_SERVICE="php8.3-fpm"
+BACKUP_DIR="backups"
 
 echo ""
 echo "═══════════════════════════════════════════════"
@@ -18,70 +25,88 @@ echo "  🚀 TMJ Deployment — $(date '+%Y-%m-%d %H:%M:%S')"
 echo "═══════════════════════════════════════════════"
 echo ""
 
-# ─── Pull Latest Code ───────────────────────────────────────────
-echo "📦 Pulling latest code from origin/${BRANCH}..."
-git fetch origin ${BRANCH}
-git reset --hard origin/${BRANCH}
-
-# ─── Install PHP Dependencies ───────────────────────────────────
-echo "📚 Installing PHP dependencies..."
-composer install --no-dev --optimize-autoloader --no-interaction
-
-# ─── First-time Setup ──────────────────────────────────────────
-if [ "$1" == "--init" ]; then
-    echo ""
-    echo "🔧 === FIRST-TIME INITIALIZATION ==="
-    echo ""
-
-    # Generate application key
-    if ! grep -q "APP_KEY=base64:" .env; then
-        echo "🔑 Generating application key..."
-        php artisan key:generate --force
-    fi
-
-    # Create storage symlink
-    echo "🔗 Creating storage symlink..."
-    php artisan storage:link
-
-    # Fresh migration + seed (data master karyawan & unit)
-    echo "🗃️  Running fresh migration with seed data..."
-    php artisan migrate:fresh --seed --force
-
-    echo ""
-    echo "✅ Initialization complete!"
-    echo ""
+# ─── Backup Database (wajib berhasil) ───────────────────────────
+echo "💾 Membuat backup database..."
+if [ ! -f .env ]; then
+    echo "❌ File .env tidak ditemukan. Deploy dihentikan."
+    exit 1
 fi
 
-# ─── Database Migration (Incremental) ──────────────────────────
-echo "🗃️  Running database migrations..."
+# Baca kredensial DB dari .env (tanpa menampilkan password)
+env_val() { grep -E "^$1=" .env | head -n1 | cut -d= -f2- | tr -d '"' | tr -d "'"; }
+DB_HOST="$(env_val DB_HOST)";         DB_HOST="${DB_HOST:-127.0.0.1}"
+DB_PORT="$(env_val DB_PORT)";         DB_PORT="${DB_PORT:-3306}"
+DB_DATABASE="$(env_val DB_DATABASE)"
+DB_USERNAME="$(env_val DB_USERNAME)"
+DB_PASSWORD="$(env_val DB_PASSWORD)"
+
+if [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ]; then
+    echo "❌ DB_DATABASE / DB_USERNAME kosong di .env. Deploy dihentikan."
+    exit 1
+fi
+
+mkdir -p "$BACKUP_DIR"
+BACKUP_FILE="${BACKUP_DIR}/${DB_DATABASE}_$(date '+%Y%m%d_%H%M%S').sql.gz"
+
+# Password dikirim lewat env MYSQL_PWD agar tidak tampil di daftar proses
+if ! MYSQL_PWD="$DB_PASSWORD" mysqldump \
+        --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" \
+        --single-transaction --quick --routines --triggers \
+        "$DB_DATABASE" | gzip > "$BACKUP_FILE"; then
+    echo "❌ Backup database GAGAL. Deploy dihentikan, tidak ada yang diubah."
+    rm -f "$BACKUP_FILE"
+    exit 1
+fi
+
+if [ ! -s "$BACKUP_FILE" ]; then
+    echo "❌ File backup kosong. Deploy dihentikan."
+    rm -f "$BACKUP_FILE"
+    exit 1
+fi
+echo "✅ Backup tersimpan: $BACKUP_FILE ($(du -h "$BACKUP_FILE" | cut -f1))"
+
+# ─── Pull Latest Code ───────────────────────────────────────────
+echo "📦 Mengambil kode terbaru dari origin/${BRANCH}..."
+git fetch origin "${BRANCH}"
+git reset --hard "origin/${BRANCH}"
+
+# ─── Install PHP Dependencies ───────────────────────────────────
+echo "📚 Memasang dependensi PHP..."
+composer install --no-dev --optimize-autoloader --no-interaction
+
+# ─── Storage Symlink (idempoten) ────────────────────────────────
+if [ ! -L public/storage ]; then
+    echo "🔗 Membuat symlink storage..."
+    php artisan storage:link
+fi
+
+# ─── Database Migration (hanya menambah, tidak pernah fresh) ───
+echo "🗃️  Menjalankan migrasi database..."
 php artisan migrate --force
 
-# ─── Clear All Caches ──────────────────────────────────────────
-echo "🧹 Clearing caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan cache:clear
+# ─── Clear & Optimize ──────────────────────────────────────────
+echo "🧹 Membersihkan cache..."
+php artisan optimize:clear
 
-# ─── Optimize for Production ───────────────────────────────────
-echo "⚡ Optimizing for production..."
+echo "⚡ Optimasi untuk production..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
 # ─── Set Permissions ───────────────────────────────────────────
-echo "🔒 Setting file permissions..."
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
+echo "🔒 Mengatur izin file..."
+sudo chmod -R 775 storage bootstrap/cache
+sudo chown -R www-data:www-data storage bootstrap/cache
 
 # ─── Restart PHP-FPM ──────────────────────────────────────────
-echo "🔄 Restarting ${PHP_FPM_SERVICE}..."
-sudo systemctl restart ${PHP_FPM_SERVICE}
+echo "🔄 Me-restart ${PHP_FPM_SERVICE}..."
+sudo systemctl restart "${PHP_FPM_SERVICE}"
 
 echo ""
 echo "═══════════════════════════════════════════════"
-echo "  ✅ Deployment completed successfully!"
+echo "  ✅ Deploy selesai!"
+echo "  💾 Backup: $BACKUP_FILE"
 echo "  📅 $(date '+%Y-%m-%d %H:%M:%S')"
 echo "═══════════════════════════════════════════════"
 echo ""
