@@ -336,10 +336,9 @@
                             style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <label for="password"
                                 style="font-size:10px; font-weight:800; color:#94A3B8; text-transform:uppercase; letter-spacing:0.15em;">Password</label>
-                            @if (Route::has('password.request'))
-                                <a href="{{ route('password.request') }}"
-                                    style="font-size:10px; font-weight:800; color:#6366F1; text-decoration:none; text-transform:uppercase; letter-spacing:0.1em;">Lupa?</a>
-                            @endif
+                            {{-- Akun tidak punya email, jadi reset password dilakukan admin lewat `php artisan user:reset-password` --}}
+                            <span
+                                style="font-size:10px; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.1em;">Hubungi admin untuk reset password</span>
                         </div>
                         <div style="position:relative;">
                             <span
