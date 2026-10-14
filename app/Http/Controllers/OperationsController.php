@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 use App\Models\Attendance;
+use App\Models\Project;
 use App\Models\UnitStatus;
 
 class OperationsController extends Controller
@@ -55,7 +56,9 @@ class OperationsController extends Controller
         $fitCount = (clone $statsBase)->where('type', 'clock_in')->where('fit_status', 'Fit')->count();
         $unfitCount = (clone $statsBase)->where('type', 'clock_in')->where('fit_status', 'Unfit')->count();
 
-        return view('admin.admin-attendance', compact('attendances', 'totalCount', 'fitCount', 'unfitCount'));
+        $projects = Project::orderBy('name')->pluck('name');
+
+        return view('admin.admin-attendance', compact('attendances', 'totalCount', 'fitCount', 'unfitCount', 'projects'));
     }
 
     public function units(Request $request)
@@ -89,10 +92,10 @@ class OperationsController extends Controller
         $standbyCount = $filteredUnits->where('status', 'Standby')->count();
         $downCount = $filteredUnits->where('status', 'Down')->count();
 
-        // Chart data distribution based on latest project placement
-        $chartMainDev = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Main Dev')->count();
-        $chartSorlim = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Sorlim')->count();
-        $chartBigFleet = $filteredUnits->filter(fn($u) => optional($u->project)->name === 'Big Fleet')->count();
+        // Distribusi unit per project untuk chart, mengikuti daftar project di database
+        $projects = Project::orderBy('name')->pluck('name');
+        $jumlahPerProyek = $filteredUnits->countBy(fn($u) => optional($u->project)->name);
+        $chartProyek = $projects->mapWithKeys(fn($nama) => [$nama => $jumlahPerProyek->get($nama, 0)]);
 
         return view('admin.admin-fleet', compact(
             'unitStatuses',
@@ -100,9 +103,8 @@ class OperationsController extends Controller
             'readyCount',
             'standbyCount',
             'downCount',
-            'chartMainDev',
-            'chartSorlim',
-            'chartBigFleet'
+            'chartProyek',
+            'projects'
         ));
     }
 

@@ -175,9 +175,9 @@
                         selectedId: '{{ request('project', '') }}',
                         options: [
                             { id: '', name: 'Semua Project' },
-                            { id: 'Main Dev', name: 'Main Dev' },
-                            { id: 'Sorlim', name: 'Sorlim' },
-                            { id: 'Big Fleet', name: 'Big Fleet' }
+                            @foreach($projects as $namaProyek)
+                            { id: @json($namaProyek), name: @json($namaProyek) },
+                            @endforeach
                         ],
                         get filteredOptions() {
                             if (this.search === '') return this.options;
@@ -515,11 +515,11 @@
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Main Dev', 'Sorlim', 'Big Fleet'],
+                labels: @json($chartProyek->keys()),
                 datasets: [{
                     label: 'Laporan',
-                    data: [{{ $chartMainDev }}, {{ $chartSorlim }}, {{ $chartBigFleet }}],
-                    backgroundColor: ['#4F46E5', '#6366F1', '#A78BFA'],
+                    data: @json($chartProyek->values()),
+                    backgroundColor: ['#4F46E5', '#6366F1', '#A78BFA', '#818CF8', '#7C3AED', '#C4B5FD'],
                     borderRadius: 4,
                     borderSkipped: false,
                     barThickness: 32,

@@ -84,9 +84,9 @@
                         selectedId: '{{ request('project', '') }}',
                         options: [
                             { id: '', name: 'Semua Project' },
-                            { id: 'Main Dev', name: 'Main Dev' },
-                            { id: 'Sorlim', name: 'Sorlim' },
-                            { id: 'Big Fleet', name: 'Big Fleet' }
+                            @foreach($projects as $namaProyek)
+                            { id: @json($namaProyek), name: @json($namaProyek) },
+                            @endforeach
                         ],
                         get filteredOptions() {
                             if (this.search === '') return this.options;

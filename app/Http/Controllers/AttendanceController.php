@@ -209,26 +209,9 @@ class AttendanceController extends Controller
 
         $validated['is_fake_gps_suspected'] = $isFakeGps;
 
-        // Calculate Shift
+        // Shift ditentukan dari aturan jam yang tersimpan di tabel projects
         $project = Project::find($validated['project_id']);
-        $hour = now()->hour;
-        $shift = 'Luar Shift'; // Fallback just in case
-
-        if ($project && in_array($project->name, ['Main Dev', 'Sorlim'])) {
-            if ($hour >= 6 && $hour < 16) {
-                $shift = 'Shift Pagi';
-            } else {
-                $shift = 'Shift Malam';
-            }
-        } elseif ($project && $project->name === 'Big Fleet') {
-            if ($hour >= 6 && $hour < 18) {
-                $shift = 'Shift Pagi';
-            } else {
-                $shift = 'Shift Malam';
-            }
-        }
-
-        $validated['shift'] = $shift;
+        $validated['shift'] = $project ? $project->tentukanShift(now()->hour) : 'Luar Shift';
 
         // Calculate geolocation distance if coordinates are provided
         if (!empty($validated['latitude']) && !empty($validated['longitude']) && $project) {
