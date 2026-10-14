@@ -13,7 +13,8 @@
                 Manajemen kehadiran dan Fit To Work karyawan
             </p>
         </div>
-        <a href="{{ route('workforce.attendance', ['export' => 'csv'] + request()->all()) }}"
+        {{-- data-no-swup: tautan unduhan tidak boleh dicegat Swup (AJAX), kalau tidak isi CSV menimpa halaman --}}
+        <a href="{{ route('workforce.attendance', ['export' => 'csv'] + request()->all()) }}" data-no-swup download
             class="inline-flex items-center gap-2 bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition-all shadow-sm">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

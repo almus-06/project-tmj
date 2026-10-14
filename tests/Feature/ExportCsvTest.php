@@ -62,6 +62,22 @@ class ExportCsvTest extends TestCase
         $this->assertStringContainsString('"DT 01 (DUMP TRUCK)";"Operator Satu";"Main Dev";Ready;"Pit A";-;1234,50;0,00', $isi);
     }
 
+    public function test_tombol_export_tidak_dicegat_swup(): void
+    {
+        $admin = $this->admin();
+
+        foreach (['/operations-dashboard/workforce-attendance', '/operations-dashboard/fleet-management'] as $url) {
+            $html = $this->actingAs($admin)->get($url)->assertOk()->getContent();
+
+            // Tautan export harus punya data-no-swup agar diunduh langsung, bukan via AJAX Swup
+            $this->assertMatchesRegularExpression(
+                '/<a href="[^"]*export=csv[^"]*"[^>]*data-no-swup/',
+                $html,
+                "Tautan export di {$url} harus memakai data-no-swup"
+            );
+        }
+    }
+
     private function buatAbsensi(int $employeeId, int $jumlah): void
     {
         $rows = [];
