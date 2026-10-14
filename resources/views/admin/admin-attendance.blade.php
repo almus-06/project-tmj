@@ -85,7 +85,7 @@
                         options: [
                             { id: '', name: 'Semua Project' },
                             @foreach($projects as $namaProyek)
-                            { id: @json($namaProyek), name: @json($namaProyek) },
+                            { id: {{ Illuminate\Support\Js::from($namaProyek) }}, name: {{ Illuminate\Support\Js::from($namaProyek) }} },
                             @endforeach
                         ],
                         get filteredOptions() {

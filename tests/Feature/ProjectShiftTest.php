@@ -64,7 +64,15 @@ class ProjectShiftTest extends TestCase
         $response = $this->actingAs($admin)->get('/operations-dashboard/fleet-management')->assertOk();
 
         $this->assertSame(['Big Fleet', 'Main Dev', 'Project Baru', 'Sorlim'], $response->viewData('chartProyek')->keys()->all());
-        $response->assertSee('Project Baru');
+
+        // Dropdown filter project memakai kutip tunggal agar tidak memutus atribut x-data="..."
+        $response->assertSee("{ id: 'Project Baru', name: 'Project Baru' }", false);
+        $response->assertDontSee('{ id: "Project Baru"', false);
+
+        // Halaman absensi memakai dropdown yang sama
+        $this->actingAs($admin)->get('/operations-dashboard/workforce-attendance')
+            ->assertOk()
+            ->assertSee("{ id: 'Project Baru', name: 'Project Baru' }", false);
     }
 
     private function jam(string $nama): array
