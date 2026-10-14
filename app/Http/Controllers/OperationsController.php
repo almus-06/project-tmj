@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -43,7 +44,7 @@ class OperationsController extends Controller
             $query->whereHas('project', fn($q) => $q->where('name', $request->project));
 
         if ($request->input('export') == 'csv') {
-            return $this->exportCsv($query->get(), 'attendances');
+            return $this->exportCsv($query, 'attendances');
         }
 
         $attendances = $query->paginate(35)->withQueryString();
@@ -98,7 +99,7 @@ class OperationsController extends Controller
             $query->where('status', $request->status);
 
         if ($request->input('export') == 'csv') {
-            return $this->exportCsv($query->get(), 'unit_statuses');
+            return $this->exportCsv($query, 'unit_statuses');
         }
 
         $unitStatuses = $query->paginate(35)->withQueryString();
@@ -148,11 +149,15 @@ class OperationsController extends Controller
         ));
     }
 
-    private function exportCsv($data, $type)
+    /**
+     * Export CSV secara streaming. Data dibaca per 1000 baris lewat lazyByIdDesc()
+     * sehingga aman untuk ratusan ribu record tanpa memuat semuanya ke memori.
+     */
+    private function exportCsv(Builder $query, string $type)
     {
         $filename = "export_{$type}_" . date('Ymd_His') . ".csv";
         $headers = [
-            "Content-type" => "text/csv",
+            "Content-type" => "text/csv; charset=UTF-8",
             "Content-Disposition" => "attachment; filename=$filename",
             "Pragma" => "no-cache",
             "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
@@ -161,48 +166,64 @@ class OperationsController extends Controller
 
         $columns = [];
         if ($type == 'attendances') {
-            $columns = ['Date', 'Code', 'Employee', 'Project', 'Status', 'BP', 'SpO2', 'Temp', 'TAK', 'Fit Status', 'Latitude', 'Longitude', 'Jarak (m)', 'Dalam Area', 'Akurasi (m)', 'Kecepatan (m/s)', 'Fake GPS', 'Link Foto'];
+            $columns = ['Tanggal', 'Tipe', 'Kode', 'Karyawan', 'Proyek', 'Status Kehadiran', 'Tekanan Darah', 'SpO2', 'Suhu (°C)', 'TAK', 'Status Fit', 'Latitude', 'Longitude', 'Jarak (m)', 'Dalam Area', 'Akurasi (m)', 'Kecepatan (m/s)', 'Fake GPS', 'Link Foto'];
         } else {
-            $columns = ['Date', 'Unit', 'Operator', 'Project', 'Status', 'Location', 'Damage', 'HM', 'KM'];
+            $columns = ['Tanggal', 'Unit', 'Operator', 'Proyek', 'Status', 'Lokasi', 'Kerusakan', 'HM', 'KM'];
         }
 
-        $callback = function () use ($data, $columns, $type) {
+        // Format angka desimal dengan koma agar terbaca sebagai angka di Excel locale Indonesia
+        $num = fn($value, $decimals = 2) => $value !== null && $value !== ''
+            ? number_format((float) $value, $decimals, ',', '')
+            : '-';
+        // Paksa sebagai teks agar Excel tidak mengubah nilai seperti "120/80" menjadi tanggal
+        $text = fn($value) => $value !== null && $value !== '' ? '="' . str_replace('"', '""', $value) . '"' : '-';
+
+        // Urutan dari paginasi (latest) diganti dengan urutan id menurun agar
+        // pembacaan per-chunk stabil dan tidak melompati baris.
+        $rows = $query->reorder()->lazyByIdDesc(1000);
+
+        $callback = function () use ($rows, $columns, $type, $num, $text) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-            foreach ($data as $row) {
+            // BOM UTF-8 agar Excel membaca karakter dengan benar
+            fwrite($file, "\xEF\xBB\xBF");
+            // Excel dengan regional Indonesia memakai titik koma sebagai pemisah kolom
+            $delimiter = ';';
+            fputcsv($file, $columns, $delimiter);
+            foreach ($rows as $row) {
                 if ($type == 'attendances') {
                     fputcsv($file, [
-                        $row->created_at->format('Y-m-d H:i:s'),
+                        $row->created_at->format('d/m/Y H:i:s'),
+                        $row->type === 'clock_out' ? 'Pulang' : 'Masuk',
                         $row->attendance_code,
                         $row->employee->name ?? '-',
                         $row->project->name ?? '-',
                         $row->presence_status,
-                        $row->blood_pressure,
+                        $text($row->blood_pressure),
                         $row->spo2,
-                        $row->temperature,
+                        $num($row->temperature, 1),
                         $row->tak ? 'Ya' : 'Tidak',
                         $row->fit_status,
-                        $row->latitude ?? '-',
-                        $row->longitude ?? '-',
+                        $num($row->latitude, 8),
+                        $num($row->longitude, 8),
                         $row->distance_from_project !== null ? round($row->distance_from_project) : '-',
                         $row->is_inside_radius === true ? 'Ya' : ($row->is_inside_radius === false ? 'Tidak' : '-'),
-                        $row->accuracy !== null ? round($row->accuracy, 2) : '-',
-                        $row->speed !== null ? round($row->speed, 2) : '-',
+                        $num($row->accuracy),
+                        $num($row->speed),
                         $row->is_fake_gps_suspected ? 'Ya' : 'Tidak',
                         $row->photo_path ? url('storage/' . $row->photo_path) : '-',
-                    ]);
+                    ], $delimiter);
                 } else {
                     fputcsv($file, [
-                        $row->created_at->format('Y-m-d H:i:s'),
+                        $row->created_at->format('d/m/Y H:i:s'),
                         ($row->unit->no_kendaraan ?? '-') . ' (' . ($row->unit->jenis_alat ?? '-') . ')',
                         $row->operator->name ?? '-',
                         $row->project->name ?? '-',
                         $row->status,
                         $row->location,
-                        $row->damage_type,
-                        $row->hm,
-                        $row->km
-                    ]);
+                        $row->damage_type ?? '-',
+                        $num($row->hm),
+                        $num($row->km),
+                    ], $delimiter);
                 }
             }
             fclose($file);
